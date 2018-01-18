@@ -93,7 +93,7 @@ main()
   char c, temp[64];
   char * filename[64];
   char * name[2];
-  name[0] = "boot", name[1] = filename;
+  name[0] = "boot", name[1] = "mtx";
 
   prints("read block# 2 (GD)\n\r");
   getblk(2, buf1);
@@ -110,7 +110,7 @@ main()
 
  
   // 3. WRITE YOUR CODE to step through the data block of root inode
-  prints("read data block of root DIR\n\r");
+  prints("read data block of root DIR..\n\r");
   
   // search for system name
   for (i=0; i < 2; i++)
@@ -130,27 +130,24 @@ main()
   // load the blocks into memory starting from (segment) 0x1000
   setes(0x1000);
 
-  // 4. print file names in the root directory /
   // direct blocks
   for (i = 0; i < 12; i++)
   {
-      getblk((u16)ip->i_block[i], 0);
-      putc('*');
-      inces(); // ?
+      getblk((u16)ip->i_block[i], 0); putc('*');
+      inces();
   }
 
   // indirect blocks
   if ((u16)ip->i_block[12])
   {
-      up = (u32 *)buf2;
-      while(*up)
-      {
-          getblk((u16)*up, 0);
-          putc('.');
-          inces();
-          up++;
-      }
+    up = (u32 *)buf2;
+    while(*up)
+    {
+        getblk((u16)*up, 0); putc('.');
+        inces();
+        up++;
+    }
   }
-  prints("ready to go?");
+  prints("go?");
   getc();
 }
