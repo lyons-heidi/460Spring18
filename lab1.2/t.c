@@ -133,7 +133,7 @@ main()
   // direct blocks
   for (i = 0; i < 12; i++)
   {
-    getblk((u16)ip->i_block[0], 0); putc('*');
+    getblk((u16)ip->i_block[i], 0); putc('*');
     inces();
   }
 

@@ -96,8 +96,8 @@ _readfd:
 _setes:  push  bp
 	mov   bp,sp
 
-         mov   ax,4[bp]        
-         mov   es,ax
+        mov   ax,4[bp]        
+        mov   es,ax
 
 	pop   bp
 	ret
