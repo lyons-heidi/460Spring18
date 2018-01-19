@@ -94,29 +94,24 @@ int getblk(u16 blk, char *buf)
 main()
 { 
   u16 i, iblk, ino;
-  char c, temp[64];
+  char c;
   char * filename[64];
   char * name[2];
   name[0] = "boot", name[1] = "mtx";
 
-  prints("Booter\n!");
-  //prints("read block# 2 (GD)\n\r");
+  //prints("boot\n");
   getblk(2, buf1);
   gp = (GD *)buf1; // case buffer contents as type GD
   
   // 1. WRITE YOUR CODE to get iblk = bg_inode_table block number
   iblk = (u16)gp->bg_inode_table;
-  //prints("inode_block="); putc(iblk+'0'); prints("\n\r"); 
 
   // 2. WRITE YOUR CODE to get root inode
-  //prints("read inodes begin block to get root inode\n\r");
   getblk(iblk, buf1);
   ip = (INODE *)buf1 + 1; // ip is the root inode
 
  
   // 3. WRITE YOUR CODE to step through the data block of root inode
-  //prints("read data block of root DIR..\n\r");
-  
   // search for system name
   for (i=0; i < 2; i++)
   { 
@@ -136,11 +131,11 @@ main()
   setes(0x1000);
 
   // direct blocks
-  //for (i = 0; i < 12; i++)
-  //{
-  getblk((u16)ip->i_block[0], 0); putc('*');
-  inces();
-  //}
+  for (i = 0; i < 12; i++)
+  {
+    getblk((u16)ip->i_block[0], 0); putc('*');
+    inces();
+  }
 
   // indirect blocks
   if ((u16)ip->i_block[12])
@@ -148,9 +143,10 @@ main()
     up = (u32 *)buf2;
     while(*up)
     {
-        getblk((u16)*up, 0); putc('.');
-        inces();
-        up++;
+      getblk((u16)*up, 0);
+      putc('.');
+      inces();
+      up++;
     }
   }
   prints("go?");

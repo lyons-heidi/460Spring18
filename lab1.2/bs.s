@@ -4,7 +4,7 @@
         .globl _main,_prints              ! IMPORT symbols
         .globl _getc,_putc                ! EXPORT symbols
 
-	    .globl _readfd,_setes,_inces,_error  
+	.globl _readfd,_setes,_inces,_error  
 	                                                
         !-------------------------------------------------------
         ! Only one SECTOR loaded at (0000,7C00). Get entire BLOCK in
@@ -32,12 +32,12 @@ start:
         mov     sp,#SSP                 ! SP = 8KB above SS=0x9000
 
         mov     ax,#0x0012              ! 640x480 color     
-	    int     0x10 
+	int     0x10 
 	
         call _main                      ! call main() in C
      
         test ax, ax
-	    je  _error 
+	je  _error 
 
         jmpi 0,0x1000
  
@@ -57,7 +57,7 @@ _getc:
 !----------------------------------------------
 _putc:           
         push   bp
-	    mov    bp,sp
+	mov    bp,sp
 	
         movb   al,4[bp]        ! get the char into aL
         movb   ah,#14          ! aH = 14
@@ -65,7 +65,7 @@ _putc:
         int    0x10            ! call BIOS to display the char
 
         pop    bp
-	    ret
+	ret
 
 
 	
@@ -76,7 +76,7 @@ _putc:
 !---------------------------------------
 _readfd:                             
         push  bp
-	    mov   bp,sp            ! bp = stack frame pointer
+	mov   bp,sp            ! bp = stack frame pointer
 
         movb  dl, #0x00        ! drive 0=FD0
         movb  dh, 6[bp]        ! head
@@ -90,23 +90,23 @@ _readfd:
         jb   _error            ! to error if CarryBit is on [read failed]
 
         pop  bp                
-	    ret
+	ret
 
         
 _setes:  push  bp
-	    mov   bp,sp
+	mov   bp,sp
 
          mov   ax,4[bp]        
          mov   es,ax
 
-	    pop   bp
-	    ret
+	pop   bp
+	ret
 	
 _inces:                         ! inces() inc ES by 0x40, or 1K
-         mov   ax,es
-         add   ax,#0x40
-         mov   es,ax
-         ret
+        mov   ax,es
+        add   ax,#0x40
+        mov   es,ax
+        ret
 
 !------------------------------
 !       error & reboot
