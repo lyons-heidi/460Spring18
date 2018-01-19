@@ -45,16 +45,20 @@ u16 search(INODE *ip, char *name)
               if (strcmp(dp->name, name) == 0)
               {
                 inum = (u16)dp->inode;
+                // prints("\n\r");
+                // return inum;
               }
               dp->name[dp->name_len] = c; // restore last byte
               dp = (char *)dp + dp->rec_len;
 	        }
         }
     }
+
     if(inum == 0)
     {
         error();
     }
+
     prints("\n\r");
     return inum;
 }
@@ -82,8 +86,8 @@ int gets(char s[ ])
 
 int getblk(u16 blk, char *buf)
 {
-  // readfd( (2*blk)/CYL, ( (2*blk)%CYL)/TRK, ((2*blk)%CYL)%TRK, buf);
-  readfd( blk/18, ((blk)%18)/9, ( ((blk)%18)%9)<<1, buf);
+  readfd( (2*blk)/CYL, ( (2*blk)%CYL)/TRK, ((2*blk)%CYL)%TRK, buf);
+  // readfd( blk/18, ((blk)%18)/9, ( ((blk)%18)%9)<<1, buf);
 }
 
 
@@ -95,27 +99,28 @@ main()
   char * name[2];
   name[0] = "boot", name[1] = "mtx";
 
-  prints("read block# 2 (GD)\n\r");
+  prints("Booter\n!");
+  //prints("read block# 2 (GD)\n\r");
   getblk(2, buf1);
   gp = (GD *)buf1; // case buffer contents as type GD
   
   // 1. WRITE YOUR CODE to get iblk = bg_inode_table block number
   iblk = (u16)gp->bg_inode_table;
-  prints("inode_block="); putc(iblk+'0'); prints("\n\r"); 
+  //prints("inode_block="); putc(iblk+'0'); prints("\n\r"); 
 
   // 2. WRITE YOUR CODE to get root inode
-  prints("read inodes begin block to get root inode\n\r");
+  //prints("read inodes begin block to get root inode\n\r");
   getblk(iblk, buf1);
   ip = (INODE *)buf1 + 1; // ip is the root inode
 
  
   // 3. WRITE YOUR CODE to step through the data block of root inode
-  prints("read data block of root DIR..\n\r");
+  //prints("read data block of root DIR..\n\r");
   
   // search for system name
   for (i=0; i < 2; i++)
   { 
-    ino = search(ip, name[0]) - 1;
+    ino = search(ip, name[i]) - 1;
 
     // read block inode of ino
     getblk(iblk+(ino/8), buf1); 
@@ -131,11 +136,11 @@ main()
   setes(0x1000);
 
   // direct blocks
-  for (i = 0; i < 12; i++)
-  {
-      getblk((u16)ip->i_block[i], 0); putc('*');
-      inces();
-  }
+  //for (i = 0; i < 12; i++)
+  //{
+  getblk((u16)ip->i_block[0], 0); putc('*');
+  inces();
+  //}
 
   // indirect blocks
   if ((u16)ip->i_block[12])
