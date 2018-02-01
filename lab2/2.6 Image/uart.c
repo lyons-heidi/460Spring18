@@ -132,17 +132,17 @@ int ufprintf(UART *up, char *fmt,...)
     if (*cp != '%'){
       uputc(up, *cp);
       if (*cp=='\n')
-	uputc(up, '\r');
+	      uputc(up, '\r');
       cp++;
       continue;
     }
     cp++;
     switch(*cp){
-    case 'c': uputc(up, (char)*ip);      break;
-    case 's': uprints(up, (char *)*ip);  break;
-    case 'd': uprinti(up, *ip);           break;
-    case 'u': uprintu(up, *ip);           break;
-    case 'x': uprintx(up, *ip);  break;
+      case 'c': uputc(up, (char)*ip);      break;
+      case 's': uprints(up, (char *)*ip);  break;
+      case 'd': uprinti(up, *ip);          break;
+      case 'u': uprintu(up, *ip);          break;
+      case 'x': uprintx(up, *ip);          break;
     }
     cp++; ip++;
   }
@@ -161,17 +161,17 @@ int uprintf(char *fmt, ...)
     if (*cp != '%'){
       uputc(up, *cp);
       if (*cp=='\n')
-	uputc(up, '\r');
+	      uputc(up, '\r');
       cp++;
       continue;
     }
     cp++;
     switch(*cp){
-    case 'c': uputc(up, (char)*ip);      break;
-    case 's': uprints(up, (char *)*ip);   break;
-    case 'd': uprinti(up, *ip);           break;
-    case 'u': uprintu(up, *ip);           break;
-    case 'x': uprintx(up, *ip);  break;
+      case 'c': uputc(up, (char)*ip);       break;
+      case 's': uprints(up, (char *)*ip);   break;
+      case 'd': uprinti(up, *ip);           break;
+      case 'u': uprintu(up, *ip);           break;
+      case 'x': uprintx(up, *ip);           break;
     }
     cp++; ip++;
   }

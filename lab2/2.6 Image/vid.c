@@ -28,6 +28,7 @@ Color LCD base address: 0x10120000 - 0x1012FFFF
 20    interruptStatusReg
 etc
 ************************************************************************/
+#define u8 unsigned char
 
 #include "font0"  // NOTE: font0 is NOT a bitmap but  char fonts0={ char map }
 extern int color;

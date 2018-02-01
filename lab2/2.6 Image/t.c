@@ -16,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 typedef unsigned char  u8;
 typedef unsigned short u16;
 typedef unsigned int   u32;
-extern char _binary_image1_start, _binary_image2_start;
 
 
 #define BLUE   0
@@ -30,7 +29,8 @@ extern char _binary_image1_start, _binary_image2_start;
 #include "vid.c"
 #include "uart.c"
 
-extern char _binary_image1_start;
+
+extern char _binary_image1_start, _binary_volleyball_start;
 
 
 int color;
@@ -78,15 +78,21 @@ int main()
    fbuf_init(mode);
 
    p = &_binary_image1_start;
-   //show_bmp(p, 0, 80); 
 
    
   while(1){
     p = &_binary_image1_start;
     show_bmp(p, 0, 0); // display image1
+
     ufprintf(up, "enter a key from this UART : ");
     ugetc(up);
+    
+    fbuf_init(0);
+    p = &_binary_volleyball_start;
+    show_bmp(p, 0, 0);
+
+
   }
 
-   while(1);   // loop here  
+   //while(1);   // loop here  
 }

@@ -1,8 +1,11 @@
 # create .o files from .bmp image files; to be included as RAW data sections
 arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm image1 image1.o
+arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm volleyball volleyball.o
+
 
 # show exported symbols
 nm -S -t d image1.o
+nm -S -t d volleyball.o
 
 # compile-link
 arm-none-eabi-as -mcpu=arm926ej-s -g ts.s -o ts.o

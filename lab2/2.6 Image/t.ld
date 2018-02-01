@@ -11,6 +11,7 @@ SECTIONS
   .bss : { *(.bss) }
   
   .data : { image1.o }
+  .data : { volleyball.o }
 
   . = ALIGN(8);
   . = . + 0x4000;           /* SVC stack */
