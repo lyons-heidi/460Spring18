@@ -57,8 +57,6 @@ int do_kfork()
 }
 
 /************* (2). Implement kexit() ***************/
-
- /**************** Algorithm of kexit(int exitValue) *****************/
 char *gasp[NPROC]={
   "Oh! I'm dying ....", 
   "Oh! You're killing me ....",
@@ -71,18 +69,22 @@ int kexit(int exitValue)
     int i;
     PROC * p = running;
     PROC * parent = running;
+
     printf("*************************************\n"); 
     printf("proc %d: %s\n", running->pid, gasp[running->pid % 4]);
+    printf("p %d ", p->pid);
+    printList("children", p);
     printf("*************************************\n");
+
     // check for process 1
-    if (running->pid==1){
-      printf("P1 never dies\n");
-      return 0;
-  }
+    if (p->pid==1){
+        printf("P1 never dies\n");
+        return 0;
+    }
 
     //  1. Erase process user-mode context, e.g. close file descriptors,
     //  release resources, deallocate user-mode image memory, etc.
-    dequeue(&running);
+    //dequeue(&p);
 
     /* 2. Dispose of children processes, if any */
     if (p->child)
@@ -128,33 +130,35 @@ int do_exit()
 int kwait(int *status)
 {
     int child_pid;
+    PROC * parent = running;
+    PROC * temp = running->child;
+    PROC * children = NULL; // set new child set to null, eventually fill with nonzombie children
+
     // if (no child), throw error
     if (!running->child)
         return -1;
 
-    while(1){ // caller has children
-        if (running->child){
-            if (running->child->status == ZOMBIE)
-            {
-                // get ZOMBIE child pid
-                child_pid = running->child->pid;
 
-                // copy ZOMBIE child exitCode to *status;
-                *status = running->child->exitCode;
+    while (1){
+        if (temp) {
+            // if the child is a ZOMBIE proc
+            if(temp->status == ZOMBIE ) {
+                parent->child = temp->sibling;
 
-                // bury the ZOMBIE child (put its PROC back to freeList)
-                running->child->status = FREE;
+                // kill the zombie
+                *status = temp->exitCode;
+                temp->sibling = NULL;
+                temp->status = FREE;
 
-                // remove ZOMBIE child from children list
-
-                return child_pid;
+                // add zombie to the freeList
+                enqueue(&freeList, temp);
             }
-            running->child = running->child->next; // iterate to next child proc
+            // update temp
+            temp = temp->sibling;
         }
-
-        // ****** has children but none are dead currently ***** 
-        ksleep(running->pid); // sleep on PID until woken up by a child in kexit()
+        // update parent children?
     }
+    ksleep(running->pid);
 }
 
 
@@ -167,6 +171,11 @@ int do_wait()
         running->pid, pid, status);
 }
 
+void showChild()
+{
+    printList("running->child", running->child);
+}
+
 int body()
 {
   int c, CR;
@@ -174,8 +183,8 @@ int body()
   while(1){
     printf("***************************************\n");
     printf("proc %d running: Parent=%d  ", running->pid, running->ppid);
-    // showChild();
-    printf("input a char [f|s|q| w ] : "); // ADD w command
+    showChild();
+    printf("input a char [f|s|q|w] : "); // ADD w command
     c = getchar(); CR=getchar();
      
     switch(c){
@@ -188,8 +197,25 @@ int body()
   }
 }
 
+void enter_child(PROC * cur, PROC * child){
+    PROC * temp = cur;
+    if(!cur->child){
+        cur->child = child;
+        return;
+    }
+    else {
+        cur = cur->child;
+        while(cur->sibling) {
+            cur = cur->sibling;
+        }
+        cur->sibling = child;
+        return;
+    }
+}
+
+
 /*******************************************************
-  kfork() creates a child porc; returns child pid.
+  kfork() creates a child proc; returns child pid.
   When scheduled to run, child PROC resumes to body();
 ********************************************************/
 int kfork()
@@ -220,8 +246,10 @@ int kfork()
 
  //  Implement the process BINARY tree
 /**** ADD code to implement process binary tree ********
-  enter_child(running, p);
+  
 ********************************************************/
+enter_child(running, p);
+
 
   enqueue(&readyQueue, p);
   printList("readyQ", readyQueue);
@@ -258,7 +286,7 @@ int init()
 /*************** main() ***************/
 main()
 {
-   printf("\nWelcome to KCW's 460 Multitasking System\n");
+   printf("\nWelcome to Heidi's 460 Multitasking System\n");
    init();
    kfork();  
    printf("P0: switch task\n");

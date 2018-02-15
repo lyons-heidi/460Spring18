@@ -64,7 +64,7 @@ int body()
 }
 
 /*******************************************************
-  kfork() creates a child porc; returns child pid.
+  kfork() creates a child proc; returns child pid.
   When scheduled to run, child PROC resumes to body();
 ********************************************************/
 int kfork()
