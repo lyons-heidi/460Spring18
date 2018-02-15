@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include "type.h"
 
+
+
+
 int enqueue(PROC **queue, PROC *p)
 {
     // enter p into queue by priority
@@ -55,5 +58,5 @@ int printList(char *name, PROC *p)
         p = p->next;
     }
     printf("NULL \n");
-    return 1;
+   return 1;
 }
