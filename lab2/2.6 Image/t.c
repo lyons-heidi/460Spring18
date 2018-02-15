@@ -70,28 +70,32 @@ int show(char *p, int startRow)
 int main()
 {
    char c, *p;
-   int mode;
+   int mode, i;
    uart_init();
    up = upp[0];
 
    mode = 0;
    fbuf_init(mode);
 
+   char * word = "hello";
    p = &_binary_image1_start;
+   show_bmp(p, 0, 0); // display image1
 
    
   while(1){
-    p = &_binary_image1_start;
-    show_bmp(p, 0, 0); // display image1
 
     ufprintf(up, "enter a key from this UART : ");
+    for (i=0;i<5;i++)
+    {
+      kputc(word[i]);
+    }
     ugetc(up);
     
     fbuf_init(0);
     p = &_binary_volleyball_start;
     show_bmp(p, 0, 0);
-
-
+    uprintf("Print to the screen\n");
+    
   }
 
    //while(1);   // loop here  

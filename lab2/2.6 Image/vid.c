@@ -175,7 +175,6 @@ int kpchar(char c, int ro, int co)
    y = ro*16;
    //printf("c=%x [%d%d] (%d%d)\n", c, ro,co,x,y);
    dchar(c, x, y);
-   
 }
 
 int unkpchar(char c, int ro, int co)
