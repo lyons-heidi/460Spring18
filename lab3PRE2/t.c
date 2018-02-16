@@ -198,7 +198,6 @@ int body()
 }
 
 void enter_child(PROC * cur, PROC * child){
-    PROC * temp = cur;
     if(!cur->child){
         cur->child = child;
         return;
