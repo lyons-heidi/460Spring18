@@ -55,3 +55,13 @@ int printList(char *name, PROC *p)
   kprintf("NULL\n"); 
 }
 
+int printSiblings(char *name, PROC *p)
+{
+   kprintf("%s = ", name);
+   while(p){
+     kprintf("[%d%d]->", p->pid, p->priority);
+     p = p->sibling;
+  }
+  kprintf("NULL\n"); 
+}
+

@@ -30,6 +30,7 @@ UART3 base address: 0x10009000;
 // RX empty: 0x10
 // BUSY=1 :  0x08
 ***********************************/
+//#include "type.h"
 int kprintf(char *fmt, ...);
 
 /******** bytes offsets: for char *base ********/

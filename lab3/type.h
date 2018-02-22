@@ -65,18 +65,24 @@ typedef unsigned int   u32;
 #define  BLOCK  3
 #define  ZOMBIE 4
 #define  printf  kprintf
- 
+
+int color; 
+
 typedef struct proc{
-  struct proc *next;
-  int    *ksp;
-  int    status;
-  int    pid;
+    struct proc *next;      // next proc pointer
+    int  *ksp;              // at offset 4: do NOT alter 
 
-  int    priority;
-  int    ppid;
-  struct proc *parent;
-  int    event;
-  int    exitCode;
+    int   pid;              // pid = 0 to NPROC-1
+    int   ppid;             // parent pid 
+    int   status;           // PROC status 
+    int   priority;         // scheduling priority 
+    int   event;            // event to sleep on 
+    int   exitCode;         // exit code value
 
-  int    kstack[SSIZE];
+    struct proc *child;     // first child PROC pointer
+    struct proc *sibling;   // sibling PROC pointer
+    struct proc *parent;    // parent PROC pointer
+
+    int   kstack[SSIZE];    // processs stack        
+       
 }PROC;

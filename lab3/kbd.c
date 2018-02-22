@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // kbd.c file
 #define N_SCAN 64
-
+//#include "type.h" // hl added this 
 #include "keymap"
 /********* byte offsets; for char *base *********/
 #define KCNTL    0x00 // 7- 6-    5(0=AT)  4=RxIntEn 3=TxIntEn  2   1   0

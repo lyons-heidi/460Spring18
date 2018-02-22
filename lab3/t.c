@@ -65,7 +65,7 @@ int main()
    VIC_INTENABLE |= 1<<31;  // SIC to VIC's IRQ31
    SIC_ENSET |= 1<<3;       // KBD int=3 on SIC
 
-   kprintf("Welcome to WANIX in Arm\n");
+   kprintf("Welcome to WANIX in Arm!!~\n");
    init();
    kfork((int)body, 1);
 

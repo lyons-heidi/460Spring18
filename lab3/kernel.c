@@ -38,12 +38,42 @@ typedef struct proc{
   int    kstack[SSIZE];
 }PROC;
 ***************************/
+//#include "type.h"
 #define NPROC 9
 #define NULL 0
 
 PROC proc[NPROC], *running, *freeList, *readyQueue;
 int procsize = sizeof(PROC);
 int body();
+
+
+// ksleep
+int ksleep(int event)
+{
+  int SR = int_off();      // disable IRQ and return CPSR
+  running->event = event;
+  running->status = SLEEP;
+  tswitch();               // switch process
+  int_on();                // restore original CPSR
+}
+
+//kwakeup
+int kwakeup(int event)
+{
+  int SR = int_off(); // disable IRQ and return CPSR
+  PROC *p;
+  int i;
+  for (i=0; i < NPROC; i++)
+  {
+    p = &proc[i];
+    if (p->status == SLEEP && p->event == event){
+      p->status = READY;
+      enqueue(&readyQueue, p);
+    }
+  }
+  int_on(SR); // restore original CPSR
+}
+
 
 int init()
 {
@@ -68,14 +98,81 @@ int init()
   printList("freeList", freeList);
 }
 
-void kexit()
+/* implementation of KEXIT */
+char *gasp[NPROC]={
+  "Oh! I'm dying ....", 
+  "Oh! You're killing me ....",
+  "Oh! I'm a goner ....", 
+  "Oh! I'm mortally wounded ....",
+};
+
+
+
+int kexit(int exitValue)
 {
-  printf("proc %d kexit\n", running->pid);
-  running->status = FREE;
-  running->priority = 0;
-  enqueue(&freeList, running); //putproc(running);
+  int i;
+  PROC * p = running;
+  PROC * p1 = &proc[1];
+
+  // check for process 1
+    if (p->pid==1){
+      printf("P1 never dies\n");
+      return 0;
+    }
+
+  /* 2. Dispose of children processes, if any */
+  // check if process has a child
+  if (p->child){
+    printf("p->child check in kexit\n");
+      if (p1->child){ // p1 has a child
+        PROC * temp = p1;
+        while (temp->child){ // get to the end of P1's children
+          temp = temp->child;
+        }
+        temp->child = p->child; // assign P1's child's child .. to proc's child
+      }
+      else { // p1 has no children, assign proc's child to p1->child
+        p1->child = p->child;
+      }
+    }
+  printf("*************************************\n"); 
+  printf("proc %d: %s\n", running->pid, gasp[running->pid % 4]);
+  printf("p %d ", p->pid);
+  printList("children", p->child);
+  printf("*************************************\n");
+
+
+  /* 3. Record exitValue in PROC.exitCode for parent to get */
+  p->exitCode = exitValue;
+
+  /* 4. Become a ZOMBIE (but do not free the PROC) */
+  p->status = ZOMBIE;
+
+  /* 5. Wakeup parent and, if needed, also the INIT process P1 */
+  p->parent->status = READY; //TODO: kwakeup
+
+  kwakeup(p->ppid); // wakeup the parent
   tswitch();
+  // grab next process
+  enqueue(&readyQueue, running);
+  return 1;
+} 
+
+void enter_child(PROC * cur, PROC * child){
+    if(!cur->child){
+        cur->child = child;
+        return;
+    }
+    else {
+        cur = cur->child;
+        while(cur->sibling) {
+            cur = cur->sibling;
+        }
+        cur->sibling = child;
+        return;
+    }
 }
+
   
 PROC *kfork(int func, int priority)
 {
@@ -85,9 +182,12 @@ PROC *kfork(int func, int priority)
     printf("no more PROC, kfork failed\n");
     return 0;
   }
+
   p->status = READY;
   p->priority = priority;
   p->ppid = running->pid;
+  p->parent = running;
+
   // set kstack to resume to body
   // stack = r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r14
   //         1  2  3  4  5  6  7  8  9  10 11  12  13  14
@@ -95,11 +195,64 @@ PROC *kfork(int func, int priority)
       p->kstack[SSIZE-i] = 0;
   p->kstack[SSIZE-1] = (int)func;  // in dec reg=address ORDER !!!
   p->ksp = &(p->kstack[SSIZE-14]);
+
+  //  Implement the process BINARY tree
+  enter_child(running, p);
+
   enqueue(&readyQueue, p);
+
   printf("%d kforked a child %d\n", running->pid, p->pid);
   printList("readyQueue", readyQueue);
+  printList("readyQ", readyQueue);
+
+  // Print child list of running
+  printList("running->child", running->child);
   return p;
 }
+
+/*******************************************************
+  kfork() creates a child proc; returns child pid.
+  When scheduled to run, child PROC resumes to body();
+********************************************************/
+// int kfork()
+// {
+//   PROC *p;
+//   int  i;
+//   /*** get a proc from freeList for child proc: ***/
+//   p = dequeue(&freeList);
+//   if (!p){
+//      printf("no more proc\n");
+//      return(-1);
+//   }
+
+//   /* initialize the new proc and its stack */
+//   p->status = READY;
+//   p->priority = 1;         // for ALL PROCs except P0
+//   p->ppid = running->pid;
+//   p->parent = running;
+
+//   //                    -1   -2  -3  -4  -5  -6  -7  -8   -9
+//   // kstack contains: |retPC|eax|ebx|ecx|edx|ebp|esi|edi|eflag|
+//   for (i=1; i<10; i++)
+//     p->kstack[SSIZE - i] = 0;
+
+//   p->kstack[SSIZE-1] = (int)body;
+//   p->ksp = &(p->kstack[SSIZE-9]); 
+ 
+
+//  //  Implement the process BINARY tree
+// /**** ADD code to implement process binary tree ********
+  
+// ********************************************************/
+// enter_child(running, p);
+
+
+//   enqueue(&readyQueue, p);
+//   printList("readyQ", readyQueue);
+//   return p->pid;
+// }
+
+
 
 int scheduler()
 {
@@ -171,15 +324,15 @@ int body()
     if (pid==8) color=CYAN;
     
     printList("readyQueue", readyQueue);
-    kprintf("proc %d running: input a char [s|f|q] : ", running->pid);
+    kprintf("proc %d running: input a char [s|f|q|w] : ", running->pid);
     c = kgetc(); 
     printf("%c\n", c);
 
     switch(c){
-      case 's': tswitch();           break;
-      case 'f': kfork((int)body, 1); break;
-      case 'q': kexit();             break;
-      case 'w': do_wait();           break;
+      case 's': tswitch(); printSiblings("Process' child list", running->child);   break;
+      case 'f': kfork((int)body, 1);      break;
+      case 'q': kexit(running->exitCode); break;
+      case 'w': do_wait();                break;
     }
   }
 }
