@@ -45,6 +45,7 @@ typedef struct proc{
 PROC proc[NPROC], *running, *freeList, *readyQueue;
 int procsize = sizeof(PROC);
 int body();
+int kwait(int *status); // prototype for kwait
 
 
 // ksleep
@@ -143,7 +144,7 @@ int kexit(int exitValue)
 
 
   /* 3. Record exitValue in PROC.exitCode for parent to get */
-  p->exitCode = exitValue;
+  p->exitCode = exitValue = p->pid;
 
   /* 4. Become a ZOMBIE (but do not free the PROC) */
   p->status = ZOMBIE;
@@ -285,7 +286,7 @@ int kwait(int *status)
 
 
     while (1){
-        if (temp) {
+        if (temp) { // loop thru 
             // if the child is a ZOMBIE proc
             if(temp->status == ZOMBIE ) {
                 parent->child = temp->sibling;
@@ -297,13 +298,16 @@ int kwait(int *status)
 
                 // add zombie to the freeList
                 enqueue(&freeList, temp);
+                return temp->pid;
             }
             // update temp
             temp = temp->sibling;
         }
         // update parent children?
+        ksleep(running->pid);
+        
     }
-    ksleep(running->pid);
+    
 }
 
 int body()
@@ -333,6 +337,7 @@ int body()
       case 'f': kfork((int)body, 1);      break;
       case 'q': kexit(running->exitCode); break;
       case 'w': do_wait();                break;
+      case 'p': printList("FreeList", freeList);  break;
     }
   }
 }
