@@ -337,7 +337,7 @@ int body()
       case 'f': kfork((int)body, 1);      break;
       case 'q': kexit(running->exitCode); break;
       case 'w': do_wait();                break;
-      case 'p': printList("FreeList", freeList);  break;
+      case 'p': printList("FreeList", freeList); printList("Running", running); break;
     }
   }
 }
