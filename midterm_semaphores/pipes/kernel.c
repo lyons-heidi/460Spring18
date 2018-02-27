@@ -76,7 +76,7 @@ int kwakeup(int event)
 }
 
 
-int init()
+int kernel_init()
 {
   int i, j; 
   PROC *p;
@@ -97,6 +97,7 @@ int init()
   running = p;
   kprintf("running = %d\n", running->pid);
   printList("freeList", freeList);
+
 }
 
 /* implementation of KEXIT */
@@ -257,7 +258,7 @@ PROC *kfork(int func, int priority)
 
 int scheduler()
 {
-  kprintf("proc %d in scheduler, ", running->pid);
+  kprintf("proc %d in scheduler ", running->pid);
   if (running->status == READY)
       enqueue(&readyQueue, running);
   running = dequeue(&readyQueue);
