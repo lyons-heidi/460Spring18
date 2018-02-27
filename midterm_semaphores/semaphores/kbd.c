@@ -24,17 +24,55 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KDATA    0x08 // data register;
 #define KCLK     0x0C // clock register;
 #define KISTA    0x10 // int status register;
+int head, tail;
+
+// semaphore struct
+typedef struct semaphore {
+    int spinlock;   // spin lock, needed only in MP systems
+    int value;      // initial value of semaphore
+    PROC *queue;    // FIFO queue of blocked processes
+}SEMAPHORE;
 
 typedef volatile struct kbd{ // base = 0x1000 6000
   char *base;         // base address of KBD, as char *
   char buf[128];
   int head, tail;
-  struct SEMAPHORE data, line; // data.value = 0, data.queue = 0
+  SEMAPHORE data, line; // data.value = 0, data.queue = 0
 }KBD;
 
 extern int color;
 volatile KBD kbd;
+
+SEMAPHORE empty, full, pmutex, cmutex;
+
 int kputc(char);
+
+/* SEMAPHORE FUNCTIONS */
+/* 
+Producer operation. Block a process in the semaphore's waiting 
+queue. 
+*/
+int P(struct semaphore *s)
+{
+  int SR = int_off();
+  s->value--;
+  if (s->value < 0){
+    block(s);
+  }
+  int_on(SR);
+}
+
+/* Release a blocked process, allow it to use a resource. */
+int V(struct semaphore *s)
+{
+  int SR = int_off();
+  s->value++;
+  if (s->value <= 0){
+    signal(s);
+  }
+  int_on();
+}
+
 
 int kbd_init()
 {
@@ -42,10 +80,22 @@ int kbd_init()
   kp->base = (char *)0x10006000; // KBD base in versatilepb
   kp->head = kp->tail = 0;
 
-  //*(kp->base+KCNTL) = 0x14; // 0001 0100
-  //*(kp->base+KCLK)  = 8;
+  *(kp->base+KCNTL) = 0x14; // 0001 0100
+  *(kp->base+KCLK)  = 8;
+  
   kp->data.value = 0; kp->data.queue = 0;
   kp->line.value = 0; kp->line.queue = 0; 
+
+  
+  int head = 0, tail = 0;
+
+  // SEMAPHORE empty = N, full = 0, pmutex = 1, cmutex = 1;
+
+  empty.value = 8; empty.queue = 0;
+  full.value = 0; full.queue = 0;
+  pmutex.value =1; pmutex.queue = 0;
+  cmutex.value = 1; cmutex.queue = 0;
+
 }
 
 void kbd_handler()
@@ -65,7 +115,7 @@ void kbd_handler()
 
   V(&kp->data);
 
-  if (c=='\r') // return key: has an input
+  if (c == '\r' ) // return key: has an input
     V(&kp->line);
 }
 
@@ -95,6 +145,41 @@ int kgets(char *line)
 }
 
 
+
+/* PRODUCER AND CONSUMER */ 
+int producer(){
+  KBD *kp = &kbd;
+  char item = 0;
+  while(1){
+    // printf("inside producer () \n");
+    // produce an item
+    item = kgetc();
+    P(&empty);
+    P(&pmutex);
+    kp->buf[head++] = item;
+    head %= 8;
+    V(&pmutex);
+    V(&full);
+  }
+}
+
+int consumer() {
+  KBD *kp = &kbd;
+  char item = 0;
+  while(1) {
+    // printf("inside consumer() \n");
+    P(&full);
+    P(&cmutex);
+    item = kp->buf[tail++];
+    kputc(item);
+    kputc('\n');
+    tail %= 8;
+    V(&cmutex);
+    V(&empty);
+  }
+}
+
+
 int kbd_task(){
   char line[128];
   KBD *kp = &kbd;
@@ -104,3 +189,4 @@ int kbd_task(){
     printf("line = %s\n", line);
   }
 }
+

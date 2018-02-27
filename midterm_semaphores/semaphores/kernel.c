@@ -46,37 +46,6 @@ int procsize = sizeof(PROC);
 int body();
 int kwait(int *status); // prototype for kwait
 
-
-
-/* SEMAPHORE FUNCTIONS */
-
-/* 
-Producer operation. Block a process in the semaphore's waiting 
-queue. 
-*/
-int P(struct semaphore *s)
-{
-  int SR = int_off();
-  s->value--;
-  if (s->value < 0)
-  {
-    block(s);
-  }
-  int_on(SR);
-}
-
-/* Release a blocked process, allow it to use a resource. */
-int V(struct semaphore *s)
-{
-  int SR = int_off();
-  s->value++;
-  if (s->value <= 0)
-  {
-    signal(s);
-  }
-  int_on();
-}
-
 int block(struct semaphore *s) {
   running->status = BLOCK;
   enqueue(&s->queue, running);
@@ -246,7 +215,6 @@ PROC *kfork(int func, int priority)
 
   printf("%d kforked a child %d\n", running->pid, p->pid);
   printList("readyQueue", readyQueue);
-  printList("readyQ", readyQueue);
 
   // Print child list of running
   printList("running->child", running->child);
@@ -296,15 +264,14 @@ PROC *kfork(int func, int priority)
 // }
 
 
-
 int scheduler()
 {
-  kprintf("proc %d in scheduler ", running->pid);
+  kprintf("proc %d in scheduler, ", running->pid);
   if (running->status == READY)
       enqueue(&readyQueue, running);
   running = dequeue(&readyQueue);
   kprintf("next running = %d\n", running->pid);
-}  
+} 
 
 int do_wait()
 {
