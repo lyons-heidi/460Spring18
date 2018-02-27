@@ -24,99 +24,55 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define KDATA    0x08 // data register;
 #define KCLK     0x0C // clock register;
 #define KISTA    0x10 // int status register;
-int head, tail;
-
-// semaphore struct
-typedef struct semaphore {
-    int spinlock;   // spin lock, needed only in MP systems
-    int value;      // initial value of semaphore
-    PROC *queue;    // FIFO queue of blocked processes
-}SEMAPHORE;
 
 typedef volatile struct kbd{ // base = 0x1000 6000
   char *base;         // base address of KBD, as char *
   char buf[128];
-  int head, tail;
-  SEMAPHORE data, line; // data.value = 0, data.queue = 0
+  int head, tail, data, room;
 }KBD;
 
 extern int color;
 volatile KBD kbd;
-
-SEMAPHORE empty, full, pmutex, cmutex;
-
 int kputc(char);
-
-/* SEMAPHORE FUNCTIONS */
-/* 
-Producer operation. Block a process in the semaphore's waiting 
-queue. 
-*/
-int P(struct semaphore *s)
-{
-  int SR = int_off();
-  s->value--;
-  if (s->value < 0){
-    block(s);
-  }
-  int_on(SR);
-}
-
-/* Release a blocked process, allow it to use a resource. */
-int V(struct semaphore *s)
-{
-  int SR = int_off();
-  s->value++;
-  if (s->value <= 0){
-    signal(s);
-  }
-  int_on();
-}
-
 
 int kbd_init()
 {
   KBD *kp = &kbd;
-  kp->base = (char *)0x10006000; // KBD base in versatilepb
-  kp->head = kp->tail = 0;
-
+  kp->base = (char *)0x10006000;
   *(kp->base+KCNTL) = 0x14; // 0001 0100
   *(kp->base+KCLK)  = 8;
-  
-  kp->data.value = 0; kp->data.queue = 0;
-  kp->line.value = 0; kp->line.queue = 0; 
-
-  
-  int head = 0, tail = 0;
-
-  // SEMAPHORE empty = N, full = 0, pmutex = 1, cmutex = 1;
-
-  empty.value = 8; empty.queue = 0;
-  full.value = 0; full.queue = 0;
-  pmutex.value =1; pmutex.queue = 0;
-  cmutex.value = 1; cmutex.queue = 0;
-
+  kp->data = 0;kp->room = 128; 
+  kp->head = kp->tail = 0;
 }
 
 void kbd_handler()
 {
   u8 scode, c;
-  KBD *kp = &kbd; 
+  // volatile char *t, *tt;
+  int i;
+  KBD *kp = &kbd;
+  color=YELLOW;
   scode = *(kp->base+KDATA);
-  if (scode &0x80)
-    return;
-  
-  if ( kp->data.value == 8 ) // input buffer is full
+  if (scode & 0x80)
     return;
 
-  c = unsh[scode];
-  kp->buf[kp->head++] = c; // enter key from circular buff
-  kp->head %= 8;
+  c = unsh[scode]; 
+  /*
+  if (c == 'r')
+     kputc('\n');
+  kputc(c);
+  */
 
-  V(&kp->data);
-
-  if (c == '\r' ) // return key: has an input
-    V(&kp->line);
+  /*********
+  kprintf("kbd interrupt: c=");
+  if (c != '\r')
+    kprintf("%x %c\n", c, c); 
+  else
+    kprints("0x 0D <cr>\n\r");
+  *****************/
+  kp->buf[kp->head++] = c;
+  kp->head %= 128;
+  kp->data++; kp->room--;
 }
 
 int kputc(char);  // kputc() in vid.c driver
@@ -125,68 +81,25 @@ int kgetc()
 {
   char c;
   KBD *kp = &kbd;
-  P(&kp->data); // P on KBD's data semaphore
+  while(kp->data <= 0); // wait for data > 0; RONLY, no need to lock
+  c = kp->buf[kp->tail++];
+  kp->tail %= 128;
 
-  lock();
-    c = kp->buf[kp->tail++]; // get a c and update tail index
-    kp->tail %= 8;
-  unlock(); // enable IRQ interrupts
-
+  // updating variables: must disable interrupts
+  int_off();
+    kp->data--; kp->room++;
+  int_on();
   return c;
 }
 
-int kgets(char *line)
+int kgets(char s[ ])
 {
   char c;
   while((c=kgetc()) != '\r'){
-    *line++ = c;
+    *s++ = c;
+    kputc(c);
   }
-  *line = 0;
+  //kputc('\n');
+  *s = 0;
+  return strlen(s);
 }
-
-
-
-/* PRODUCER AND CONSUMER */ 
-int producer(){
-  KBD *kp = &kbd;
-  char item = 0;
-  while(1){
-    // printf("inside producer () \n");
-    // produce an item
-    item = kgetc();
-    P(&empty);
-    P(&pmutex);
-    kp->buf[head++] = item;
-    head %= 8;
-    V(&pmutex);
-    V(&full);
-  }
-}
-
-int consumer() {
-  KBD *kp = &kbd;
-  char item = 0;
-  while(1) {
-    // printf("inside consumer() \n");
-    P(&full);
-    P(&cmutex);
-    item = kp->buf[tail++];
-    kputc(item);
-    kputc('\n');
-    tail %= 8;
-    V(&cmutex);
-    V(&empty);
-  }
-}
-
-
-int kbd_task(){
-  char line[128];
-  KBD *kp = &kbd;
-  while(1) {
-    P(&kp->line); // wait for a line
-    kgets(line);
-    printf("line = %s\n", line);
-  }
-}
-

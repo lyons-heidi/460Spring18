@@ -53,28 +53,6 @@ int body();
 int producer();
 int consumer();
 
-// int main()
-// { 
-//    int i; 
-//    char line[128]; 
-//    u8 kbdstatus, key, scode;
-//    color = WHITE;
-//    row = col = 0; 
-//    fbuf_init();
-//    kbd_init();
-//    /* enable KBD IRQ */
-//    VIC_INTENABLE |= 1<<31;  // SIC to VIC's IRQ31
-//    SIC_ENSET |= 1<<3;       // KBD int=3 on SIC
-
-//    kprintf("Welcome to WANIX in Arm!!~\n");
-//    init();
-//    kfork((int)body, 1);
-//    while(1){
-//      if (readyQueue)
-//         tswitch();
-//    }
-// }
-
 
 int main()
 {
@@ -98,14 +76,10 @@ int main()
     printf("P0 create tasks\n");
 
     kfork((int)producer, 1);
-    printf("Producer forks\n");
     kfork((int)consumer, 1);
 
-
-    printf("Consumer forks\n");
     while(1) { // p0 runs whenever no task is runnable
-        while(!readyQueue); // loop if readyQueue is empty
-        printList("ReadyQueue", readyQueue);
-        tswitch();
+        if(readyQueue) // loop if readyQueue is empty
+            tswitch();
     }
 }

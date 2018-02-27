@@ -42,13 +42,90 @@ typedef struct proc{
 #define NULL 0
 
 PROC proc[NPROC], *running, *freeList, *readyQueue;
+SEMAPHORE empty, full, pmutex, cmutex;
+char buf[BUFSIZE];
+int head = 0;
+int tail = 0;
+
 int procsize = sizeof(PROC);
 int body();
 int kwait(int *status); // prototype for kwait
 
+
+/* SEMAPHORE FUNCTIONS */
+/* 
+Producer operation. Block a process in the semaphore's waiting 
+queue. 
+*/
+int P(struct semaphore *s)
+{
+  int SR = int_off();
+  s->value--;
+  if (s->value < 0){
+    block(s);
+  }
+  int_on(SR);
+}
+
+/* Release a blocked process, allow it to use a resource. */
+int V(struct semaphore *s)
+{
+  int SR = int_off();
+  s->value++;
+  if (s->value <= 0){
+    signal(s);
+  }
+  int_on();
+}
+
+
+/* PRODUCER AND CONSUMER */ 
+int producer(){
+  char line[64];
+  int linelen = 0, counter;
+  printf("inside producer\n");
+  while(1){
+    counter = 0;
+    // printf("inside producer () \n");
+    // produce an item
+    kgets(line);
+    linelen = strlen(line);
+    while (counter < linelen) {
+      P(&empty);
+      P(&pmutex);
+      buf[head++] = line[counter++];
+      head %= 8;
+      V(&pmutex);
+      V(&full);
+    }
+    tswitch();
+  }
+}
+
+int consumer() {
+  char item = 0;
+  while(1) {
+    // printf("inside consumer() \n");
+    P(&full);
+    P(&cmutex);
+    item = buf[tail++];
+    kputc(item);
+    // kputc('\n');
+    tail %= 8;
+    V(&cmutex);
+    V(&empty);
+  }
+}
+
+
+
 int block(struct semaphore *s) {
   running->status = BLOCK;
   enqueue(&s->queue, running);
+  if(running->pid == 2)
+  {
+    printf("\n\r");
+  }
   tswitch();
 }
 
@@ -108,6 +185,12 @@ int init()
   running = p;
   kprintf("running = %d\n", running->pid);
   printList("freeList", freeList);
+
+  empty.value = BUFSIZE;
+  full.value = 0;
+  pmutex.value = 1;
+  cmutex.value = 1;
+
 }
 
 /* implementation of KEXIT */
@@ -267,6 +350,7 @@ PROC *kfork(int func, int priority)
 int scheduler()
 {
   kprintf("proc %d in scheduler, ", running->pid);
+  //kprintf("proc->priority: %d\n", running->priority);
   if (running->status == READY)
       enqueue(&readyQueue, running);
   running = dequeue(&readyQueue);
@@ -326,27 +410,33 @@ int body()
   kprintf("proc %d resume to body()\n", running->pid);
   while(1){
     pid = running->pid;
-    if (pid==0) color=BLUE;
-    if (pid==1) color=WHITE;
-    if (pid==2) color=GREEN;
-    if (pid==3) color=CYAN;
-    if (pid==4) color=YELLOW;
-    if (pid==5) color=WHITE;
-    if (pid==6) color=GREEN;   
-    if (pid==7) color=WHITE;
-    if (pid==8) color=CYAN;
-    
-    printList("readyQueue", readyQueue);
-    kprintf("proc %d running: input a char [s|f|q|w] : ", running->pid);
-    c = kgetc(); 
-    printf("%c\n", c);
+    switch(pid){
+      case 1: producer(); break;
+      case 2: consumer(); break;
+      default: break;
 
-    switch(c){
-      case 's': tswitch(); printSiblings("Process' child list", running->child);   break;
-      case 'f': kfork((int)body, 1);      break;
-      case 'q': kexit(running->exitCode); break;
-      case 'w': do_wait();                break;
-      case 'p': printList("FreeList", freeList); printList("Running", running); break;
     }
+    // if (pid==0) color=BLUE;
+    // if (pid==1) color=WHITE;
+    // if (pid==2) color=GREEN;
+    // if (pid==3) color=CYAN;
+    // if (pid==4) color=YELLOW;
+    // if (pid==5) color=WHITE;
+    // if (pid==6) color=GREEN;   
+    // if (pid==7) color=WHITE;
+    // if (pid==8) color=CYAN;
+    
+    // printList("readyQueue", readyQueue);
+    // kprintf("proc %d running: input a char [s|f|q|w] : ", running->pid);
+    // c = kgetc(); 
+    // printf("%c\n", c);
+
+    // switch(c){
+    //   case 's': tswitch(); printSiblings("Process' child list", running->child);   break;
+    //   case 'f': kfork((int)body, 1);      break;
+    //   case 'q': kexit(running->exitCode); break;
+    //   case 'w': do_wait();                break;
+    //   case 'p': printList("FreeList", freeList); printList("Running", running); break;
+    // }
   }
 }

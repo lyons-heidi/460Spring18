@@ -65,6 +65,7 @@ typedef unsigned int   u32;
 #define  BLOCK  3
 #define  ZOMBIE 4
 #define  printf  kprintf
+#define BUFSIZE 8
 
 int color; 
 
@@ -86,5 +87,13 @@ typedef struct proc{
     int   kstack[SSIZE];    // processs stack        
        
 }PROC;
+
+
+// semaphore struct
+typedef struct semaphore {
+    int spinlock;   // spin lock, needed only in MP systems
+    int value;      // initial value of semaphore
+    PROC *queue;    // FIFO queue of blocked processes
+}SEMAPHORE;
 
 
