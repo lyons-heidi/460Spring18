@@ -29,21 +29,22 @@ PIPE *kpipe; // global PIPE pointer
 /* Pipe Goodies */
 int pipe_writer(){ // pipe writer task code
     struct uart *up = &uart[0];
+    int j;
     char line[128];
     while(1){
-        uprintf("Enter a line for task1 to get : ");
-        printf("task%d waits for line from UART0\n", running->pid);
+        // printf("Enter a line for task1 to get : ");
+        //printf("task%d waits for line from UART0\n", running->pid);
         
         ugets(up, line);
         uprints(up, "\r\n");
-        printf("task%d writes line=[%s] to pipe\n", running->pid, line);
+        printf("\ntask%d writes line=[%s] to pipe\n", running->pid, line);
         write_pipe(kpipe, line, strlen(line));
     }
 }
 
 int pipe_reader(){ // pipe reader task code
     char line[128];
-    int i, n;
+    int i, j, n;
     while(1){
         printf("task%d reading from pipe\n", running->pid);
         n = read_pipe(kpipe, line, 20);
@@ -74,19 +75,15 @@ void IRQ_handler()
     // read VIC status register to find out which interrupt
     vicstatus = VIC_STATUS; // VIC_STATUS=0x10140000=status reg
     sicstatus = SIC_STATUS;  
-    //kprintf("vicstatus=%x sicstatus=%x\n", vicstatus, sicstatus);
-    if (vicstatus & 0x80000000){
-        if (sicstatus & 0x08){
-            kbd_handler();
-        }    
-        if (vicstatus & (1<<12)) // bit12=1: uart0
-            uart_handler(&uart[0]);
-        if (vicstatus & (1<<13)) // bit13=1: uart1
-            uart_handler(&uart[1]);
-        if (vicstatus & (1<<31)){ // PIC.bit31= SIC interrupts
-            if (sicstatus & (1<<3)){ // SIC.bit3 = KBD interrupt
+
+    if (vicstatus & (1<<12)) // bit12=1: uart0
+        uart_handler(&uart[0]);
+    if (vicstatus & (1<<13)) // bit13=1: uart1
+        uart_handler(&uart[1]);
+    
+    if (vicstatus & (1<<31)){ // PIC.bit31= SIC interrupts
+        if (sicstatus & (1<<3)){ // SIC.bit3 = KBD interrupt
                 kbd_handler();
-            }
         }
     }
 }

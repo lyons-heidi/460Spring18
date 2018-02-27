@@ -104,8 +104,12 @@ int write_pipe(PIPE *p, char *buf, int n){
                 break;
         }
         kwakeup(&p->data); // wakeup readers, if any.
-        if (n==0)
+        if (n==0){
+            if(p->data) 
+                tswitch();
             return r; // finished writing n bytes
+        }
+            
         
         // still has data to write but pipe has no room
         ksleep(&p->room); // sleep for room

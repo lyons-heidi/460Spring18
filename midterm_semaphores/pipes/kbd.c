@@ -57,11 +57,11 @@ void kbd_handler()
     return;
 
   c = unsh[scode]; 
-  /*
+  
   if (c == 'r')
      kputc('\n');
   kputc(c);
-  */
+
 
   /*********
   kprintf("kbd interrupt: c=");

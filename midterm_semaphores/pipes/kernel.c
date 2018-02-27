@@ -259,7 +259,7 @@ PROC *kfork(int func, int priority)
 int scheduler()
 {
   kprintf("proc %d in scheduler ", running->pid);
-  if (running->status == READY)
+  if (running->status == READY || running->status == FREE)
       enqueue(&readyQueue, running);
   running = dequeue(&readyQueue);
   kprintf("next running = %d\n", running->pid);

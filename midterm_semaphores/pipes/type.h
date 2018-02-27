@@ -68,7 +68,7 @@ typedef unsigned int   u32;
 #define  printf  kprintf
 
 #define NPIPE 4
-#define PSIZE 16
+#define PSIZE 8
 
 int color; 
 

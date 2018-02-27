@@ -97,7 +97,7 @@ int do_rx(UART *up)
   // while(!(*(up->base + UFR) & 0x40));
   c = *(up->base+UDR);
 
-  kprintf("rx interrupt: %c\n", c);
+  // kprintf("rx interrupt: %c\n", c);
   if (c==0xD)
      kprintf("\n");
   up->inbuf[up->inhead++] = c; 
@@ -241,7 +241,7 @@ int ufprintf(UART *up, char *fmt,...)
     if (*cp != '%'){
       uputc(up, *cp);
       if (*cp=='\n')
-	uputc(up, '\r');
+	      uputc(up, '\r');
       cp++;
       continue;
     }
@@ -270,7 +270,7 @@ int uprintf(char *fmt, ...)
     if (*cp != '%'){
       uputc(up, *cp);
       if (*cp=='\n')
-	uputc(up, '\r');
+	      uputc(up, '\r');
       cp++;
       continue;
     }
