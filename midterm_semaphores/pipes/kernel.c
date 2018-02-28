@@ -76,7 +76,7 @@ int kwakeup(int event)
 }
 
 
-int init()
+int kernel_init()
 {
   int i, j; 
   PROC *p;
