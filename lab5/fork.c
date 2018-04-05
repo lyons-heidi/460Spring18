@@ -79,7 +79,7 @@ PROC *kfork(char *filename)
   // put istring in it, let p->usp be its VA pointing at the istring
 
   BA = p->pgdir[2048] & 0xFFF00000;
-  Btop = BA + 0x400000; //hl changed to 4
+  Btop = BA + 0x100000; //hl changed to 4, back to 1
   Busp = Btop - 32;
 
   cp = (char *)Busp;
@@ -125,12 +125,33 @@ int fork()
 
   printf("running usp=%x linkR=%x\n", running->usp, running->upc);
 
+  PA = (running->pgdir[2045] & 0xFFFf0000);
+  CA = (p->pgdir[2045] & 0xFFFF0000);
+  printf("FORK: child  %d uimage at %x\n", p->pid, CA);
+  printf("copy Umode image from %x to %x\n", PA, CA);
+  // copy 1MB of Umode image (MOD for lab5)
+  memcpy((char *)CA, (char *)PA, 0x100000); //hl changed
+
+  PA = (running->pgdir[2046] & 0xFFFf0000);
+  CA = (p->pgdir[2046] & 0xFFFF0000);
+  printf("FORK: child  %d uimage at %x\n", p->pid, CA);
+  printf("copy Umode image from %x to %x\n", PA, CA);
+  // copy 1MB of Umode image (MOD for lab5)
+  memcpy((char *)CA, (char *)PA, 0x100000); //hl changed
+
+  PA = (running->pgdir[2047] & 0xFFFf0000);
+  CA = (p->pgdir[2047] & 0xFFFF0000);
+  printf("FORK: child  %d uimage at %x\n", p->pid, CA);
+  printf("copy Umode image from %x to %x\n", PA, CA);
+  // copy 1MB of Umode image (MOD for lab5)
+  memcpy((char *)CA, (char *)PA, 0x100000); //hl changed
+
   PA = (running->pgdir[2048] & 0xFFFf0000);
   CA = (p->pgdir[2048] & 0xFFFF0000);
   printf("FORK: child  %d uimage at %x\n", p->pid, CA);
   printf("copy Umode image from %x to %x\n", PA, CA);
-  // copy 1MB of Umode image
-  memcpy((char *)CA, (char *)PA, 0x100000);
+  // copy 1MB of Umode image (MOD for lab5)
+  memcpy((char *)CA, (char *)PA, 0x100000); //hl changed
 
   //  p->upc = running->upc;
   p->usp = running->usp;   // both should be VA in their sections

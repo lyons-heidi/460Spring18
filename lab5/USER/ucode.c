@@ -18,15 +18,16 @@ int getppid()
 
 int umenu()
 {
-  uprintf("--------------------------------------------------\n");
-  uprintf("ps chname kfork kvfork switch wait exit fork exec \n");
-  uprintf("--------------------------------------------------\n");
+  uprintf("------------------------------------------------------- \n");
+  uprintf("ps chname kfork kvfork switch wait exit fork exec vfork \n");
+  uprintf("------------------------------------------------------- \n");
 }
 
 int ups()
 {
   return syscall(2,0,0,0);
 }
+
 int uchname()
 {
   char s[32];

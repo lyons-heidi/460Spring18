@@ -98,17 +98,21 @@ int init()
     for (j=2049; j<4096; j++){ // zero out high 2048 entries
       mtable[j] = 0;
     }
-    mtable[2048]=(0x800000 + (i-1)*0x100000)|0xC12; // entry 2048 OR in 0xC12  
+    mtable[2045]=(0x800000 + ((i*4)-4)*0x100000)|0xC12; // entry 2048 OR in 0xC12 
+    mtable[2046]=(0x800000 + ((i*4)-3)*0x100000)|0xC12; // entry 2048 OR in 0xC12 
+    mtable[2047]=(0x800000 + ((i*4)-2)*0x100000)|0xC12; // entry 2048 OR in 0xC12 
+    mtable[2048]=(0x800000 + ((i*4)-1)*0x100000)|0xC12; // entry 2048 OR in 0xC12  
+
     mtable += 4096;
   }
 
-  /* verify some of the pgdir contents
+  // verify some of the pgdir contents
   mtable = (int *)0x700000;   // mtables begin at 7MB
   for (i=0; i<4; i++){ 
      printf("mtable[%d][2048] = %x\n", i, (u32)mtable[2048]);
      mtable += 4096;
   }
-  */
+
 }
 
 int scheduler()

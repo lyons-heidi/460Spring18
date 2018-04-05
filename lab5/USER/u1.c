@@ -29,24 +29,25 @@ main(int argc, char *argv[])
     if (strcmp(line, "ps")==0)
       ups();
     if (strcmp(line, "chname")==0)
-       uchname();
+      uchname();
     if (strcmp(line, "kfork")==0)
-       ukfork();
+      ukfork();
     if (strcmp(line, "kvfork") == 0) {
       uvfork();
       uexec("u2 test vfork");
     }
     if (strcmp(line, "switch")==0)
-       uswitch();
+      uswitch();
     if (strcmp(line, "exit")==0)
-       uexit();
+      uexit();
 
     if (strcmp(line, "wait")==0)
-       uwait();
+      uwait();
     if (strcmp(line, "fork")==0)
-       ufork();
+      ufork();
     if (strcmp(line, "exec")==0)
-       uexec();
+      uexec();
+       
 
   }
 }
