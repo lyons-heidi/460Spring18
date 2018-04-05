@@ -1,0 +1,5 @@
+(cd USER; mku u1; mku u2)
+arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm \
+                      ramdisk ramdisk.o
+file ramdisk.o
+nm -S -t d ramdisk.o
