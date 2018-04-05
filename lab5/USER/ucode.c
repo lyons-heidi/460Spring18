@@ -18,9 +18,9 @@ int getppid()
 
 int umenu()
 {
-  uprintf("------------------------------------------\n");
-  uprintf("ps chname kfork switch wait exit fork exec\n");
-  uprintf("------------------------------------------\n");
+  uprintf("--------------------------------------------------\n");
+  uprintf("ps chname kfork kvfork switch wait exit fork exec \n");
+  uprintf("--------------------------------------------------\n");
 }
 
 int ups()
@@ -158,7 +158,7 @@ int uvfork()
   int ppid, pid, status;
   ppid = getpid();
   pid = syscall(11, 0,0,0); // vfork() syscall# = 11
-  
+
   if (pid){
     printf("vfork parent %d return child pid=%d ", ppid, pid);
     printf("wait for child to terminate\n");
