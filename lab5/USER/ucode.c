@@ -153,6 +153,25 @@ int token(char *line)
   argv[argc] = 0;
 }
 
+int uvfork()
+{
+  int ppid, pid, status;
+  ppid = getpid();
+  pid = syscall(11, 0,0,0); // vfork() syscall# = 11
+  
+  if (pid){
+    printf("vfork parent %d return child pid=%d ", ppid, pid);
+    printf("wait for child to terminate\n");
+    pid = wait(&status);
+    printf("vfork parent: dead child=%d, status=%x\n", pid, status);
+  }
+  else{
+    printf("vforked child: mypid=%d ", getpid());
+    printf("vforked child: exec(\"u2 test vfork\")\n");
+    syscall(10, "u2 test vfork",0,0);
+  }
+}
+
 
 main0(char *s)
 {

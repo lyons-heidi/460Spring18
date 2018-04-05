@@ -36,6 +36,7 @@ int svc_handler(volatile int a, int b, int c, int d)
      case 8: r = getusp(); break;
      case 9: r = fork(); break;
      case 10: r = exec((char *)b); break;
+     case 11: r = kvfork(); break;
      case 90: r = kgetc() & 0x7F;  break;
      case 91: r = kputc(b); break;
      case 92: r = kgetPA(); break;

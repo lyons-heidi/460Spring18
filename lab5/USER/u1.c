@@ -32,6 +32,8 @@ main(int argc, char *argv[])
        uchname();
     if (strcmp(line, "kfork")==0)
        ukfork();
+    if (strcmp(line, "kvfork") == 0)
+      uvfork();
     if (strcmp(line, "switch")==0)
        uswitch();
     if (strcmp(line, "exit")==0)

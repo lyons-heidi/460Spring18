@@ -79,7 +79,7 @@ PROC *kfork(char *filename)
   // put istring in it, let p->usp be its VA pointing at the istring
 
   BA = p->pgdir[2048] & 0xFFF00000;
-  Btop = BA + 0x100000;
+  Btop = BA + 0x400000; //hl changed to 4
   Busp = Btop - 32;
 
   cp = (char *)Busp;
@@ -168,3 +168,39 @@ int fork()
 
   return p->pid;
 }
+
+
+
+int kvfork()
+{
+  int i, cusp, pusp;
+  PROC *p = getproc();
+  if (p==0){ printf("vfork failed\n"); return -1; }
+  p->ppid = running->pid;
+  p->parent = running;
+  p->status = READY;
+  p->priority = 1;
+  p->vforked = 1; // add vforked entry in PROC
+  p->pgdir = running->pgdir; // share parent's pgdir
+  for (i=1; i <= 14; i++){
+    p->kstack[SSIZE-i] = running->kstack[SSIZE-i];
+  }
+  for (i=15; i<=28; i++){ // zero out Umode registers
+    p->kstack[SSIZE-i] = 0;
+  }
+
+  p->kstack[SSIZE - 14] = 0; // child return pid = 0
+  p->kstack[SSIZE-15] = (int)goUmode; // resume to goUmode
+  p->ksp = &(p->kstack[SSIZE-28]);
+  p->ucpsr = running->ucpsr;
+  pusp = (int)running->usp;
+  cusp = pusp - 1024; // child ustack: 1024 bytes down
+  p->usp = (int *)cusp;
+
+  memcpy((char *)cusp, (char *)pusp, 128); // 128 entries enough
+  enqueue(&readyQueue, p);
+
+  printf("proc %d vforked a child %d\n",running->pid, p->pid);
+  return p->pid;
+}
+

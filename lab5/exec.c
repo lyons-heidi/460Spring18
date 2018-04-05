@@ -41,17 +41,26 @@ int exec(char *cmdline) // cmdline=VA in Uspace
   upa = p->pgdir[2048] & 0xFFFF0000; // PA of Umode image
   kprintf("load file %s to %x\n", file, upa);
 
-  // load filename to Umode image 
-  loadelf(file, p);
+
   //  printf("after loading ");
+
+  if (p->vforked){
+    p->pgdir = (int *)(0x600000 + p->pid*0x4000);
+    printf("%d is VFORKED: switchPgdir to %x",p->pid, p->pgdir);
+    switchPgdir(p->pgdir);
+    p->vforked = 0;
+  }
+
+    // load filename to Umode image 
+  loadelf(file, p);
 
   // copy kline to high end of Ustack in Umode image
   
-  usp = upa + 0x100000 - 128;
+  usp = upa + 0x400000 - 128; //hl changed to 4
   printf("usp=%x ", usp);
   kstrcpy((char *)usp, kline);
 
-  p->usp = (int *)VA(0x100000 - 128);
+  p->usp = (int *)VA(0x400000 - 128); //hl changed to 4
   printf("p->usp = %x ", p->usp);
 
   // set up syscall kstack frame to return to new image at VA=0

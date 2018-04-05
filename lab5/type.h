@@ -88,6 +88,7 @@ typedef struct proc{
   struct proc *parent;
   int    event;
   int    exitCode;
+  int 	 vforked;
   //  int    pad;      // strange! need this pad to work
   char   name[64];
   int    kstack[SSIZE];
