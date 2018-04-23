@@ -10,7 +10,7 @@ u_entry:
 	mov r0, #0
 	bl  mexit
         	
-// if main0() ever retrun: syscall to exit(0)
+// if main0() ever return: syscall to exit(0)
 	
 @ user process issues int syscall(a,b,c,d) ==> a,b,c,d are in r0-r3	
 syscall:
@@ -27,6 +27,7 @@ getmysp:
 getcsr:
    mrs r0, cpsr
    mov pc, lr
+   
 getmyaddress:
    ldr r0, =main0
    mov pc, lr

@@ -14,12 +14,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
-/* crt0.c : main0(s) called from u.s, where s = oigianl command string
+/* crt0.c : main0(s) called from u.s, where s = oiginal command string
             tokenlize s into char *argv[ ] and call main(argc, argv).
  
     token() breaks up a string into argc of tokens, pointed by argv[]
 */
 /*  #include "uinclude.h" */
+
+#ifndef CRT0_C
+#define CRT0_C
 
 int argc;
 char *argv[32];
@@ -53,6 +56,9 @@ void showarg(int argc, char *argv[ ])
     printf("%s ", argv[i]);
   prints("\n");
 }
+
+
+
 // BEFORE: r0 was trashed in goUmode(), so had to rely on r1->string
 // NOW: r0 is NOT trashed in goUmode() ==> should be r0 alone
 void main0(char *s)
@@ -64,3 +70,6 @@ void main0(char *s)
   //showarg(argc, argv);
   main(argc, argv);
 }
+
+
+#endif
