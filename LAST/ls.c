@@ -1,12 +1,13 @@
 /** Program C8.2: ls.c: run as a.out [filename] **/
+// copied from textbook, todo: fix
 #include "ucode.c"
-#include "string.c"
+//#include "string.c"
 
 // #include <stdio.h>
 // #include <stdlib.h>
 // #include <string.h>
 // #include <sys/stat.h>
-// #include <time.h>
+ #include <time.h>
 // #include <sys/types.h>
 // #include <dirent.h>
 // #include <errno.h>
@@ -19,6 +20,7 @@ struct stat mystat, *sp;
 int ls_file(char *fname) // list a single file
 {
     struct stat fstat, *sp = &fstat;
+    char *ftime;
     int r, i;
     char sbuf[4096];
     r = lstat(fname, sp);       // lstat the file
@@ -37,8 +39,8 @@ int ls_file(char *fname) // list a single file
     }
 
     printf("%4d ", sp->st_nlink); // link count
-    printf("%4d ", sp->st_uid // uid
-    printf("%8d ", sp->st_size); // file size
+    printf("%4d ", sp->st_uid);   // uid
+    printf("%8d ", sp->st_size);  // file size
     
     strcpy(ftime, ctime(&sp->st_ctime));
     
@@ -47,7 +49,7 @@ int ls_file(char *fname) // list a single file
     printf("%s", basename(fname)); // file basename
     
     if (S_ISLNK(sp->st_mode)){ // if symbolic link
-        r = readlink(fname, sbuf, 4096);
+        r = readlink(fname, sbuf);//, 4096);
         printf(" -> %s", sbuf); // -> linked pathname
     }
     printf("\n");

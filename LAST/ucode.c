@@ -13,7 +13,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
-
+// last changed from ls 
+#define EOF -1
+#define NULL 0
 
 typedef unsigned char   u8;
 typedef unsigned short u16;
@@ -27,8 +29,7 @@ int pid;
 char line[64], pathname[32], i2[32], i3[32];
 char *name[16], components[64];
 int nk;
-#define EOF -1
-#define NULL 0
+
 extern char cr;
 
 //void putchar(const char c){ }
@@ -43,8 +44,9 @@ int getc()
    to file) may get 0 byte ==> MUST return 2-byte -1 to differentiate.
    **********************************************************************/
 
-   if (n==0 || c==4 || c==0 ) return EOF;  
-                                
+   if (n == 0 || c == 4 || c == 0 ) {
+     return EOF;  
+   }                            
    return (c&0x7F);
 }
 
