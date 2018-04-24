@@ -1,5 +1,5 @@
 
-int strlen(char *s)
+int strlen(const char *s)
 {
   int i = 0;
   while(*s){
@@ -81,8 +81,9 @@ int strcspn(const char *str1, const char *str2){
 
 int atoi(char *str){
     int res = 0;
+    int i;
     // go through char and update resutl:
-    for (int i = 0; str[i] != '\0'; ++i){
+    for (i = 0; str[i] != '\0'; ++i){
         res = res*10 + str[i] - '0';
     }
     return res;
