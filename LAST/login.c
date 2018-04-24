@@ -17,6 +17,7 @@ when user logs in,
 #include "ucode.c"
 
 char fusername[128], fpassword[128], fgid[10], fuid[10], fullname[128], homedir[256], program[256];
+char *mystrtok(char *source, const char *delimeter);
 
 int main(int argc, char *argv[ ])
 {
@@ -24,6 +25,8 @@ int main(int argc, char *argv[ ])
     int success = 0; // login success
     char *token;
     char username[128], password[128]; // for storing user inputted username/pw values
+
+    
 
     // P2 opens /dev/tty0 as stdin, stdout, stderr then displays login
 
@@ -41,10 +44,12 @@ int main(int argc, char *argv[ ])
     fixtty(argv[1]);
 
     prints("Heidi's Login ~\n");
-    printf("testing printf");
-    prints("it made it\n");
 
     while(1){
+
+        int fd, fdLen;
+        char buf[256];
+
         // grab login details
         prints("Heidi-Login: ");
         gets(username);
@@ -53,21 +58,15 @@ int main(int argc, char *argv[ ])
         gets(password);
 
         // (4). open /etc/passwd file for READ;
-        int fd, fdLen;
-        char buf[1024];
-
-        fd = open("/etc/passwd", 0);
         
-        if ( fd < 0 ) {
+
+        if((fd = open("/etc/passwd", 0))< 0){
             prints("Error! Cannot open() '/etc/passwd'\n");
             exit(1);
         }
 
         // now read file descriptor:
-        fdLen = read(fd, buf, 1024);
-        buf[fdLen] = 0;
-
-        if ( fdLen < 0 ) {
+        if((fdLen = read(fd, buf, 256))< 0){
             prints("Error! Cannot read() '/etc/passwd'\n");
             exit(1);
         }
@@ -83,17 +82,18 @@ int main(int argc, char *argv[ ])
         // for each line in /etc/passwd file do{
         // tokenize user account line;
         token = mystrtok(buf, ":\n");
-        //prints(token);
+        // printf("buf: [%s]\n", buf);
+        // printf("token: [%s]\n", token);
+        // printf("username: [%s]\n", username);
 
-        while(token != 0 && success != 0)
+        while(token != 0 && success == 0)
         {
-            printf("inside tokenizer");
             // (6). if (user has a valid account)
             if (strcmp(token, username) == 0) { // usernames match, check password
                 // username matches, go onto check if the password matches
+                // printf("usernames match!\n");
                 strcpy(fusername, username);
                 strcpy(fpassword, mystrtok(NULL, ":\n"));
-                printf("fpassword: %s \n", fpassword);
 
                 if (strcmp(fpassword, password) == 0) {
                     // account has been validated!

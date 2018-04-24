@@ -1,3 +1,4 @@
+#define NULL 0
 
 int strlen(const char *s)
 {
@@ -89,48 +90,66 @@ int atoi(char *str){
     return res;
 }
 
-int strncmp(char * s1, const char *s2, int i){
-    int j = i;
 
-    for( ; j > 0; j-= 1) { 
-        if(*s1 != s2){
-            if(*s1 > *s2){
-                return 1;
-            }
-            else {
-                return -1;
-            }
-        }
-        if (*s++ = 0)){
-            return 0;
-        }
-        s2 += 1;
-    }
-    return 0;
-}
 
 
 // string tokenizer function 
-/* Src: http://www.beedub.com/Sprite093/src/lib/c/string/strtok.c */
-char * mystrtok(char *string, const char *delim){ 
-    static char *lasts;    /* string: string to search for tokens */     
-    register int ch;       /* delim: delimiting characters */
+// thanks, Apple:
+// (source): https://opensource.apple.com/source/Libc/Libc-167/string.subproj/strtok.c.auto.html
 
-    if(string == 0){
-        string = lasts;
-    }
-    while(strchr(delim, ch)) {
-        if ((ch = *string++) == '\0'){
-            return 0;
-        }
-    }
-    --string;
-    lasts = string + strcspn(string, delim);
-    if(*lasts != 0){
-        *lasts++ = 0;
-    }
+char *
+mystrtok(s, delim)
+	register char *s;
+	register const char *delim;
+{
+	register char *spanp;
+	register int c, sc;
+	char *tok;
+	static char *last;
 
-    return string;
+    //prints("Inside mystrtok fn\n");
+	if (s == NULL && (s = last) == NULL){
+        return (NULL);
+    }
+		
+
+	/*
+	 * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
+	 */
+cont:
+	c = *s++;
+	for (spanp = (char *)delim; (sc = *spanp++) != 0;) {
+		if (c == sc)
+			goto cont;
+	}
+
+	if (c == 0) {		/* no non-delimiter characters */
+		last = NULL;
+		return (NULL);
+	}
+	tok = s - 1;
+
+	/*
+	 * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
+	 * Note that delim must have one NUL; we stop if we see that, too.
+	 */
+	for (;;) {
+		c = *s++;
+		spanp = (char *)delim;
+		do {
+			if ((sc = *spanp++) == c) {
+				if (c == 0)
+					s = NULL;
+				else
+					s[-1] = 0;
+				last = s;
+				return (tok);
+			}
+		} while (sc != 0);
+	}
+	/* NOTREACHED */
 }
+
+
 
 

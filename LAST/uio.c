@@ -93,6 +93,7 @@ void mputs(char *s)
 }
 
 extern int strlen(const char *);
+
 void print2f(char *s)
 {
   write(2, s, (int)strlen(s));

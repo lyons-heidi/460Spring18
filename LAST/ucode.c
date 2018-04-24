@@ -21,13 +21,14 @@ typedef unsigned int   u32;
 
 #include "uio.c"
 #include "crt0.c"
-//#include "string.h"
+#include "string.c"
 
 int pid;
 char line[64], pathname[32], i2[32], i3[32];
 char *name[16], components[64];
 int nk;
 #define EOF -1
+#define NULL 0
 extern char cr;
 
 //void putchar(const char c){ }
