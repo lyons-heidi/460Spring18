@@ -545,3 +545,13 @@ int strcasecmp(char *s1, char *s2)
   return strcmp(t1, t2);
 }
 */
+
+/* ty jm */
+/* Implementation of mymemset */ 
+void * my_memset(void *s, int c, int n){
+  unsigned char *p = s;
+  while(n--){
+      *p++ = (unsigned char) c;
+  }
+  return s;
+}
