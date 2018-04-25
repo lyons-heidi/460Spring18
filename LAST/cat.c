@@ -9,33 +9,33 @@ int main (int argc, char *argv[]) {
     prints("********** Heidi's Cat MEOW ************ \n");
     
     int n = 0;
-    int fd; // file descriptor
+    int fd; 
     int stdin = 0, stdout = 1; // read/write to stdin/out
     char buf[1024], cmdLine[64], user_ch;
     
     // make sure user enters input
-    if(argc < 0){
+    if(argc <= 0){
         prints("Error, no input found! \n");
         exit(1);
     }
 
-    // Only one ch found
+    // only one argument given to main, get input from stdin
     else if (argc == 1) {
         fd = 0;
-        prints("Error! User must specify a file!\n");
-        // while(read(0, &user_ch, 1)){
-        //     // If newline detected, write to screen
-        //     if( user_ch == '\n' || user_ch == '\r' )
-        //     {
-        //         write(1, "\n", 1);
-        //         write(1, "\r", 1);
-        //     }
+        //prints("Error! User must specify a file!\n");
+        while(read(0, &user_ch, 1)){
+            // If newline detected, write to screen
+            if( user_ch == '\n' || user_ch == '\r' )
+            {
+                write(1, "\n", 1);
+                write(1, "\r", 1);
+            }
 
-        //     // write char to screen
-        //     else{
-        //         write(1, &user_ch, 1);
-        //     }
-        // }
+            // write char to screen
+            else{
+                write(1, &user_ch, 1);
+            }
+        }
     }
 
     else{

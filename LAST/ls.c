@@ -1,6 +1,7 @@
 /** Program C8.2: ls.c: run as a.out [filename] **/
 // copied from textbook, todo: fix
 #include "ucode.c"
+#include "stat.h"
 //#include "string.c"
 
 // #include <stdio.h>
