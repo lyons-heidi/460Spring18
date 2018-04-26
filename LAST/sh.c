@@ -1,10 +1,12 @@
 #include "ucode.c"
 
 // fn prototypes TODO put all here
-char *mystrtok(char *source, const char *delimeter);
+// TODO have redirect check?
+char *mystrtok(register char *s, register const char *delim);
 void * my_memset(void *s, int c, int n);
 
 void do_pipe(char *cmdl);
+void redirect(char *cmd, int redirect_type);
 
 int status;
 
@@ -18,14 +20,33 @@ void logout() {
 
 
 /***************** do_pipe Algorithm *****************/
+/*
+int pid, pd[2];
+pipe(pd); // create a pipe: pd[0]=READ, pd[1]=WRITE
+pid = fork(); // fork a child to share the pipe
+if (pid){ // parent: as pipe READER
+close(pd[1]); // close pipe WRITE end
+dup2(pd[0], 0); // redirect stdin to pipe READ end
+exec(cmd2);
+}
+else{ // child : as pipe WRITER
+close(pd[0]); // close pipe READ end
+dup2(pd[1], 1); // redirect stdout to pipe WRITE end
+exec(cmd1);
+}
+*/
+
 void do_pipe(char *inc_cmd) {
     int pid, pd[2];
     int i=0, j=0;
     char head[128], tail[128], temp[128];
-    char *tkn, *cmd1, cmd2;
+    char *tkn, *cmd1, *cmd2;
 
+    printf("inside do_pipe command. command: [%s]\n", inc_cmd);
     // copy first chunk of command line contents into temp char arr
+    
     strcpy(temp, inc_cmd);
+    printf("temp value: [%s]\n", temp);
 
     // tokenize out the first command, store in head
     while(temp[i] != '|'){
@@ -34,6 +55,8 @@ void do_pipe(char *inc_cmd) {
     }
     // set last value of str to 0
     head[i - 1] = 0;
+
+    printf("head value: [%s]\n", head);
 
     // grab second part of pipe cmd
     i += 2;
@@ -46,12 +69,14 @@ void do_pipe(char *inc_cmd) {
     }
     tail[j] = 0;
 
+    printf("tail value: [%s]\n", tail);
+
     pipe(pd); // create a pipe: pd[0]=READ, pd[1]=WRITE
     pid = fork(); // fork a child to share the pipe
 
     // Check if Parent Process
-    if (pid){ // parent: as pipe READER
-        close(pd[1]); // close pipe WRITE end
+    if (pid){           // parent: as pipe READER
+        close(pd[1]);   // close pipe WRITE end
         dup2(pd[0], 0); // redirect stdin to pipe READ end
         
         // check for nested pipes before exec
@@ -60,17 +85,26 @@ void do_pipe(char *inc_cmd) {
             do_pipe(tail); // recursively handle tail end of pipe
         }
         else {
-            // TODO: check for redirection here
+            // check for redirection
+            redirect(tail, get_redirect_type(tail));
+
+            printf("No nested pipes, executing tail: [%s]\n", tail);
             exec(tail);
+            printf("Tail executed\n");
         }
     }
 
     // Check if Child Process 
     else{ // child : as pipe WRITER
+        printf("issa child process\n");
         close(pd[0]); // close pipe READ end
         dup2(pd[1], 1); // redirect stdout to pipe WRITE end
-        // TODO: check for redirection here
-        exec(cmd1);
+
+        // check for redirection
+        redirect(head, get_redirect_type(head));
+        printf("back from redirect, executing head: [%s]\n", head);
+        exec(head);
+        printf("back from exec head\n");
     }
     /* Multiple pipes are handled recursively, from right to left. */
     return;
@@ -93,15 +127,15 @@ int pipe_exists(char *cmd) {
 /* Check to see if a redirect char exists in an inc string
 --> return 1 if '<' or '>' exists in incoming cmd
 --> return 0 if no redirect char found  */
-int redirect_exists(char *cmd) {
-    char *ptr = cmd; 
-    while(*ptr) {
-        if (*ptr == '>' || *ptr == '<')
-            return 1;
-        *ptr++;
-    }
-    return 0;
-}
+// int redirect_exists(char *cmd) {
+//     char *ptr = cmd; 
+//     while(*ptr) {
+//         if (*ptr == '>' || *ptr == '<')
+//             return 1;
+//         *ptr++;
+//     }
+//     return 0;
+// }
 
 
 /* Check to see which redirect char exists in an inc string
@@ -151,6 +185,7 @@ void redirect(char *cmd, int redirect_type) {
 
     strcpy(temp, cmd);
 
+    printf("Inside redirect! Redirect str: %s, type: %d\n", cmd, redirect_type);
     if (redirect_type == 1) { // '>>'
         // grab the command portion of the cmd, store in command arr
         for(i = 0; temp[i] != '>'; i++){
@@ -210,6 +245,10 @@ void redirect(char *cmd, int redirect_type) {
         dup2(fd, 0);
         exec(command);
     }
+    if (redirect_type == 0) {
+        printf("no redirects in cmd!\n");
+        return;
+    }
 }
 
 int main(int argc, char *argv[ ])
@@ -231,6 +270,9 @@ int main(int argc, char *argv[ ])
         gets(command);
 
         strcpy(temp, command); // handle temp
+        if(command[0] == 0 || command[0] == ' '){
+            continue;
+        }
 
         // parse out the actual command
         cmd = mystrtok(temp, " ");
@@ -239,11 +281,7 @@ int main(int argc, char *argv[ ])
 
         // logout
         if (strcmp("logout", cmd) == 0) {
-            printf("Logging out...\n");
-
-            // change back to main dir, exit
-            chdir("/");
-            exit(0);
+            logout();
         }
 
         // fork a child process! execute commands!
@@ -266,7 +304,7 @@ int main(int argc, char *argv[ ])
 
             // execute command and check for piping or for redirect symbols
             else { 
-                printf("\nincoming command = %s\n", command);
+                printf("\n incoming command = %s \n", command);
 
                 //check if incoming command has a redirect:
                 if (pipe_exists(command) == 0){
@@ -274,12 +312,12 @@ int main(int argc, char *argv[ ])
                     exec(command);
                 }
                 else{
-                    prints("***************************PIPING!***********\n");
+                    prints("============ PIPING! ============\n");
                     do_pipe(command);
                 }
             }
         }
-        /* ====================================================== */
+        my_memset(currentdir, 0, 128);
     }
 
 
