@@ -130,8 +130,27 @@ int get_redirect_type(char *cmd) {
     return 0; // no redirection chars found
 }
 
-void redirect(char *cmd) {
-    int redirect_type = get_redirect_type(cmd);
+
+// perform redirection based on redirect type in a string
+/*
+--> 'cat [filename] >> appendFile' will append contents of [filename] at the end of appendFile
+--> 'cat [filename] > newFile' will copy the contents of [filename] 
+                      and overwrite them into newFIle if it already exists
+--> a.out < inFile' will read the inputs from inFile
+*/
+void redirect(char *cmd, int redirect_type) {
+    int i, j, k;
+    int fd;
+    char temp[128], command[128], incfile[128];
+    int cmdLen = my_strlen(cmd);
+
+    // make a copy of inc command string
+    my_memset(temp,0,128);
+    my_memset(incfile,0,128);
+    my_memset(command,0,128);
+
+    strcpy(temp, cmd);
+
     if (redirect_type == 1) { // '>>'
 
     }
@@ -148,4 +167,4 @@ void redirect(char *cmd) {
 int main(int argc, char *argv[ ])
 {
   
-}
+} 
