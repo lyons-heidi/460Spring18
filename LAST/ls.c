@@ -1,4 +1,5 @@
 /** Program C8.2: ls.c: run as a.out [filename] **/
+// SEE PAGE 299 
 // copied from textbook, todo: fix
 #include "ucode.c"
 #include "stat.h"

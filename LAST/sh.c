@@ -1,6 +1,6 @@
 #include "ucode.c"
 
-// fn prototypes
+// fn prototypes TODO put all here
 char *mystrtok(char *source, const char *delimeter);
 void * my_memset(void *s, int c, int n);
 
@@ -269,7 +269,7 @@ int main(int argc, char *argv[ ])
                 printf("\nincoming command = %s\n", command);
 
                 //check if incoming command has a redirect:
-                if (pipeFound(command) == 0){
+                if (pipe_exists(command) == 0){
                     redirect(command, get_redirect_type(command));
                     exec(command);
                 }
