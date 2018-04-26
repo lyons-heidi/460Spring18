@@ -141,30 +141,118 @@ int get_redirect_type(char *cmd) {
 void redirect(char *cmd, int redirect_type) {
     int i, j, k;
     int fd;
-    char temp[128], command[128], incfile[128];
+    char temp[128], command[128], filedir[128];
     int cmdLen = my_strlen(cmd);
 
     // make a copy of inc command string
     my_memset(temp,0,128);
-    my_memset(incfile,0,128);
+    my_memset(filedir,0,128);
     my_memset(command,0,128);
 
     strcpy(temp, cmd);
 
     if (redirect_type == 1) { // '>>'
+        // grab the command portion of the cmd, store in command arr
+        for(i = 0; temp[i] != '>'; i++){
+            command[i] = temp[i];
+        }
+        command[i - 1] = '\0'; // add null terminator
+        
+        // grab the filedir after bracket, store in firedir arr
+        // i + 3 to jump to start of filename
+        for(j = i + 3, k = 0; j < cmdLen; j++,k++){
+            filedir[k] = temp[j];
+        }
+        filedir[k] = '\0'; // add null terminator
 
+        // open the file, append command output to end of file
+        fd = open(filedir, O_APPEND | O_WRONLY | O_CREAT);
+        dup2(fd, 1);
+        exec(command);
     }
 
     if (redirect_type == 2) { // '>'
+        // grab the command portion of the cmd, store in command arr
+        for(i = 0; temp[i] != '>'; i++){
+            command[i] = temp[i];
+        }
+        command[i - 1] = '\0'; // add null terminator
         
+        // grab the filedir after bracket, store in firedir arr
+        // i + 2 to jump to start of filename
+        for(j = i + 2, k = 0; j < cmdLen; j++,k++){
+            filedir[k] = temp[j];
+        }
+        filedir[k] = '\0'; // add null terminator
+
+        // open the file, then write exec contents to new/existing file
+        fd = open(filedir, O_WRONLY | O_CREAT);
+        dup2(fd, 1);
+        exec(command);
     }
     
     if (redirect_type == 3) { // '<'
+        // grab the command portion of the cmd, store in command arr
+        for(i = 0; temp[i] != '<'; i++){
+            command[i] = temp[i];
+        }
+        command[i - 1] = '\0'; // add null terminator
         
+        // grab the filedir after bracket, store in firedir arr
+        // i + 3 to jump to start of filename
+        for(j = i + 3, k = 0; j < cmdLen; j++,k++){
+            filedir[k] = temp[j];
+        }
+        filedir[k] = '\0'; // add null terminator
+
+        // open the file, read inputs from file, feed into command
+        fd = open(filedir, O_RDONLY);
+        dup2(fd, 0);
+        exec(command);
     }
 }
 
 int main(int argc, char *argv[ ])
 {
-  
+    char command[128], currentdir[128], temp[128];
+    int pid, fd; // process id, file descriptor
+    char *cmd;
+
+    while(1) {
+
+        printf("======================================\n");
+        printf("= - -- Welcome to Heidi's Shell -- - =\n");
+        printf("======================================\n");
+        
+        getcwd(currentdir);
+
+        // handle user command 
+        printf("Heidi-Sh: %s$ ", currentdir); // display cwd
+        gets(command);
+
+        strcpy(temp, command); // handle temp
+
+        // parse out the actual command
+        cmd = mystrtok(temp, " ");
+
+
+
+        // logout
+        if (strcmp("logout", cmd) == 0) {
+            printf("Logging out...\n");
+
+            // change back to main dir, exit
+            chdir("/");
+            exit(0);
+        }
+
+        // fork a child process! execute commands!
+        else { 
+
+        }
+
+        /* ====================================================== */
+    }
+
+
 } 
