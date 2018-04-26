@@ -248,9 +248,37 @@ int main(int argc, char *argv[ ])
 
         // fork a child process! execute commands!
         else { 
+            printf("Forking a child process\n");
+            pid = fork();
 
+            // check for fork success
+            if (pid < 0) {
+                printf("Error! No available child processes! Exiting..\n");
+                exit(1);
+            }
+
+            if (pid) {
+                // exec child process first
+                printf("Parent id: %d, forked child id: %d", getpid(), pid);
+                pid  = wait(&status);
+                printf("Child process %d finished\n", pid);
+            }
+
+            // execute command and check for piping or for redirect symbols
+            else { 
+                printf("\nincoming command = %s\n", command);
+
+                //check if incoming command has a redirect:
+                if (pipeFound(command) == 0){
+                    redirect(command, get_redirect_type(command));
+                    exec(command);
+                }
+                else{
+                    prints("***************************PIPING!***********\n");
+                    do_pipe(command);
+                }
+            }
         }
-
         /* ====================================================== */
     }
 
