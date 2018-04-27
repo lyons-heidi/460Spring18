@@ -25,7 +25,7 @@ int main(int argc, char *argv[ ])
     int success = 0; // login success
     char *token;
     char username[128], password[128]; // for storing user inputted username/pw values
-
+    int uid, gid;
     
 
     // P2 opens /dev/tty0 as stdin, stdout, stderr then displays login
@@ -93,20 +93,25 @@ int main(int argc, char *argv[ ])
                 // username matches, go onto check if the password matches
                 // printf("usernames match!\n");
                 strcpy(fusername, username);
-                strcpy(fpassword, mystrtok(NULL, ":\n"));
+                strcpy(fpassword, mystrtok(0, ":\n"));
 
                 if (strcmp(fpassword, password) == 0) {
                     // account has been validated!
                     prints("account validated!\n");
                     success = 1;
 
-                    strcpy(fgid, mystrtok(NULL, ":\n"));
-                    strcpy(fuid, mystrtok(NULL, ":\n"));
-                    strcpy(fullname, mystrtok(NULL, ":\n"));
-                    strcpy(homedir, mystrtok(NULL, ":\n"));
+                    // cast to integer type!
+                    gid = atoi(mystrtok(0, ":\n"));
+                    uid = atoi(mystrtok(0, ":\n"));
+
+                    //strcpy(fgid, mystrtok(0, ":\n"));
+                    //strcpy(fuid, mystrtok(0, ":\n"));
+                    strcpy(username, mystrtok(0, ":\n"));
+                    strcpy(homedir, mystrtok(0, ":\n"));
+                    strcpy(program, mystrtok(0, ":\n"));
 
                     // (7). change uid, gid to user's uid, gid; // chuid()
-                    chuid(fuid, fgid);
+                    chuid(uid, gid);
 
                     // change cwd to user's home DIR // chdir()
                     chdir(homedir);
