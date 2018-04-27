@@ -16,12 +16,12 @@ int main(int argc, char *argv[ ])
 
     int pid = getpid();
     printf("Heidi-sh: proc %d running GREP program\n", pid);
-
-    // debugging
-    printf("argc = %d\n", argc);
-    for (i=0; i<argc; i++){
-        printf("argv[%d] = %s\n", i, argv[i]);
-    }
+    printf("argc: %d\n", argc);
+    // // debugging
+    // printf("argc = %d\n", argc);
+    // for (i=0; i<argc; i++){
+    //     printf("argv[%d] = %s\n", i, argv[i]);
+    // }
 
 
     // handle 'grep'
@@ -31,19 +31,19 @@ int main(int argc, char *argv[ ])
     }
 
     // handle 'grep KEYWD'
-    else if(argc == 2){
-        // store pattern
+    if(argc == 2) {
+        prints("no file given\n");
         strcpy(pattern, argv[1]);
-        fd = dup(0);
 
-        // go through the entire dir's 'file' until EndOF
+        fd = dup(0);
+        // go through the entire file until EndOF
         while( EndOF == 1 ) {
             // clear bufer
             my_memset(buf, 0, 128);
 
             // go through a line and see if 'pattern' matches:
             line = 0;
-            while(line < lenline){     // a typical line is 80 chars long
+            while(line < lenline ){     // a typical line is 80 chars long
                 // read in a line to the buffer
                 n = read(fd, &buf[line], 1);
                 
@@ -60,20 +60,18 @@ int main(int argc, char *argv[ ])
                 line++;
             }
 
-            printf("%s", buf); //testing buffer.
+            //printf("%s", buf); //testing buffer.
             
             // pattern found! Print to console
-            if(getsubstr(pattern, buf) != 0) {
+            if (getsubstr(pattern, buf) != 0 ) {
                 printf("%s", buf);
             }
         }
-
-        // close buffer at end
         close(fd);
     }
-
+    /* ******************************************************************************* */
     // handle 'grep KEYWD filename'
-    else if(argc == 3) {
+    else { // if(argc == 3) {
         strcpy(pattern, argv[1]);
 
         // try to open specified file
