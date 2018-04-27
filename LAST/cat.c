@@ -25,8 +25,7 @@ int main (int argc, char *argv[]) {
         //prints("Error! User must specify a file!\n");
         while(read(0, &user_ch, 1)){
             // If newline detected, write to screen
-            if( user_ch == '\n' || user_ch == '\r' )
-            {
+            if(user_ch == '\n' || user_ch == '\r'){
                 write(1, "\n", 1);
                 write(1, "\r", 1);
             }

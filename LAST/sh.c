@@ -255,7 +255,7 @@ int main(int argc, char *argv[ ])
 {
     char command[128], currentdir[128], temp[128];
     int pid, fd; // process id, file descriptor
-    char *cmd;
+    char *token;
 
     while(1) {
 
@@ -275,13 +275,29 @@ int main(int argc, char *argv[ ])
         }
 
         // parse out the actual command
-        cmd = mystrtok(temp, " ");
+        token = mystrtok(temp, " ");
 
 
 
         // logout
-        if (strcmp("logout", cmd) == 0) {
+        if (strcmp("logout", token) == 0 ) {
             logout();
+        }
+
+        else if (strcmp("cd", token) == 0 ) {
+            // grab filedir
+            token = mystrtok(0, " ");
+
+            // handle no filedir given
+            if(token == 0) {
+                prints("Chdir into current dir\n");
+                chdir(currentdir);
+            }
+            // change dir
+            else {
+                printf("change dir to = %s\n", token);
+                chdir(token);
+            }
         }
 
         // fork a child process! execute commands!

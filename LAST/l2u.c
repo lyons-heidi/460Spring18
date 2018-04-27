@@ -52,14 +52,7 @@ int main (int argc, char *argv[]) {
             toUpper(buf);
             m = 0;
             while(m < n) {
-                // if(buf[m] == '\r'){
-                //     buf[m] = '\n';
-                // }
-                
                 write(fdd, &buf[m], 1);
-                // if(buf[m] == '\n') { 
-                //     write(2, "\r", 1);
-                // }
                 m++;
             }
         }
