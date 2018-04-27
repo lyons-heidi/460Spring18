@@ -1,110 +1,205 @@
-/** Program C8.2: ls.c: run as a.out [filename] **/
-// SEE PAGE 299 
-// copied from textbook, todo: fix
+/********************************************************************
+Copyright 2010-2015 K.C. Wang, <kwang@eecs.wsu.edu>
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+********************************************************************/
 #include "ucode.c"
-#include "stat.h"
-//#include "string.c"
 
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <string.h>
-// #include <sys/stat.h>
- #include <time.h>
-// #include <sys/types.h>
-// #include <dirent.h>
-// #include <errno.h>
+#define BLK 1024
+#define OWNER  000700
+#define GROUP  000070
+#define OTHER  000007
 
-char *t1 = "xwrxwrxwr-------";
-char *t2 = "----------------";
+/******************************************************************
+typedef struct stat {
+  ushort st_dev;		// major/minor device number 
+  ushort st_ino;		// i-node number 
+  ushort st_mode;		// file mode, protection bits, etc.
+  ushort st_nlink;		// # links; TEMPORARY HACK: should be nlink_t
+  ushort st_uid;		// uid of the file's owner 
+  ushort st_gid;		// gid; TEMPORARY HACK: should be gid_t
+  ushort st_rdev;
+  long   st_size;		// file size 
+  long   st_atime;		// time of last access 
+  ******************** KCW : order in ionde is ctime, mtime ***************
+  //long   st_mtime;		// time of last data modification
+  //long   st_ctime;		// time of last file status change
+  ***************** revirse order to make storing time in MTX easier *********
+  long   st_ctime;		// time of last data modification
+  long   st_mtime;		// time of last file status change
+  ****** KCW: order of ctime and mtime are reversed in inode 
+} STAT;
+**************************************************************************/
+//int strcat(), strncpy();
 
-struct stat mystat, *sp;
+STAT utat, *sp;
+int fd, n;
+DIR *dp;
+char f[32], cwdname[64], file[64];
+char buf[1024];
 
-int ls_file(char *fname) // list a single file
+DIR *dp;
+char *cp;
+
+void pdate(t) u8 t[4];
 {
-    struct stat fstat, *sp = &fstat;
-    char *ftime;
-    int r, i;
-    char sbuf[4096];
-    r = lstat(fname, sp);       // lstat the file
-    if (S_ISDIR(sp->st_mode))
-        printf("%c",'d');       // print file type as d
-    if (S_ISREG(sp->st_mode))
-        printf("%c",'-');       // print file type as -
-    if (S_ISLNK(sp->st_mode))
-        printf("%c",'l');       // print file type as l
+   printf("%c%c%c%c-%c%c-%c%c  ", 
+          (t[0]>>4)+'0', (t[0]&0x0F)+'0',
+          (t[1]>>4)+'0', (t[1]&0x0F)+'0', 
+          (t[2]>>4)+'0', (t[2]&0x0F)+'0',
+          (t[3]>>4)+'0', (t[3]&0x0F)+'0');
+}
 
-    for (i=8; i>=0; i--){
-        if (sp->st_mode & (1<<i))
-            printf("%c", t1[i]); // print permission bit as r w x
+void ptime(t) u8 t[4];
+{
+   printf("%c%c:%c%c:%c%c  ", 
+   (t[0]>>4)+'0', (t[0]&0x0F)+'0',
+   (t[1]>>4)+'0', (t[1]&0x0F)+'0', 
+   (t[2]>>4)+'0', (t[2]&0x0F)+'0');
+}
+
+void ls_file(sp,name,path) struct stat *sp; char *name, *path;
+{
+    int mode, mask, k, len;
+    char fullname[32], linkname[60];
+
+    mode = sp->st_mode;
+
+    if ((mode & 0040000) == 0040000)
+        mputc('d');
+
+    if ((mode & 0120000) == 0120000)
+        mputc('s');
+    else if ((mode & 0100000) == 0100000)
+         mputc('-');
+
+
+    mask = 000400;
+    for (k=0; k<3; k++){
+        if (mode & mask)
+            mputc('r');
         else
-            printf("%c", t2[i]); // print permission bit as -
+            mputc('-');
+        mask = mask >> 1;
+        if (mode & mask)
+            mputc('w');
+        else
+            mputc('-');
+        mask = mask >> 1;
+        if (mode & mask)
+            mputc('x');
+        else
+            mputc('-');
+        mask = mask >> 1;
     }
 
-    printf("%4d ", sp->st_nlink); // link count
-    printf("%4d ", sp->st_uid);   // uid
-    printf("%8d ", sp->st_size);  // file size
-    
-    strcpy(ftime, ctime(&sp->st_ctime));
-    
-    ftime[strlen(ftime)-1] = 0; // kill \n at end
-    printf("%s ",ftime); // time in calendar form
-    printf("%s", basename(fname)); // file basename
-    
-    if (S_ISLNK(sp->st_mode)){ // if symbolic link
-        r = readlink(fname, sbuf);//, 4096);
-        printf(" -> %s", sbuf); // -> linked pathname
-    }
-    printf("\n");
-}
-
-
-
-int ls_dir(char *dname) // list a DIR
-{
-    char name[256]; // EXT2 filename: 1-255 chars
-    DIR *dp;
-    struct dirent *ep;
-    // open DIR to read names
-    dp = opendir(dname); // opendir() syscall
-    while (ep = readdir(dp)){ // readdir() syscall
-        strcpy(name, ep->d_name);
-        if (!strcmp(name, ".") || !strcmp(name, ".."))
-            continue; // skip over . and .. entries
-        
-        strcpy(name, dname);
-        strcat(name, "/");
-        strcat(name, ep->d_name);
-        ls_file(name); // call list_file()
-    }
-}
-
-
-int main(int argc, char *argv[])
-{
-    struct stat mystat, *sp;
-    int r;
-    char *s;
-    char filename[1024], cwd[1024];
-
-    s = argv[1]; // ls [filename]
-    if (argc == 1) // no parameter: ls CWD
-        s = "./";
-
-    sp = &mystat;
-    if ((r = stat(s, sp)) < 0){ // stat() syscall
-        perror("ls"); exit(1);
-    }
-    strcpy(filename, s);
-    
-    if (s[0] != '/'){ // filename is relative to CWD
-        getcwd(cwd, 1024); // get CWD path
-        strcpy(filename, cwd);
-        strcat(filename, "/");
-        strcat(filename,s); // construct $CWD/filename
-    }
-    
-    if (S_ISDIR(sp->st_mode))
-        ls_dir(filename); // list DIR
+    if (sp->st_nlink < 10)
+        printf("  %d ", sp->st_nlink);
     else
-        ls_file(filename); // list single file
+        printf(" %d ", sp->st_nlink);
+
+
+    printf(" %d  %d", sp->st_uid, sp->st_gid);
+    //align(sp->st_size);
+    printf("%d ", sp->st_size);
+
+    pdate(&sp->st_date); ptime(&sp->st_time);
+
+    printf("%s", name);
+
+    if ((mode & 0120000)== 0120000){
+      strcpy(fullname, path); strcat(fullname, "/"); strcat(fullname,name);
+      // symlink file: get its linked string
+      len = readlink(fullname, linkname);
+      printf(" -> %s", linkname);
+    }
+
+    printf("\n\r");     
+
 }
+
+void ls_dir(sp, path) struct stat *sp; char *path;
+{
+    STAT dstat, *dsp;
+    long size;
+    char temp[32];
+
+    size = sp->st_size;
+
+    // printf("ls_dir %s\n", path); //getc();
+
+    fd = open(file, O_RDONLY); /* open dir file for READ */
+
+    while ( (n = read(fd, buf, 1024))){
+
+      cp = buf;
+      dp = (DIR *)cp;
+
+      while (cp < &buf[1024]){
+        if (dp->inode != 0){
+           dsp = &dstat;
+           strncpy(temp, dp->name, dp->name_len); 
+           temp[dp->name_len] = 0;  
+
+           strcpy(f, file);
+           strcat(f, "/"); strcat(f, temp);
+
+           if (stat(f, dsp) >= 0){
+              ls_file(dsp, temp, path);
+           }
+        }
+        cp += dp->rec_len;
+        dp = (DIR *)cp;
+      }
+    }
+
+    close(fd);
+}         
+
+int main(int argc, char *argv[ ])
+{
+    printf("========================================\n");
+    printf("= --- -- Heidi's LS in action - -- --- =\n");
+    printf("========================================\n");
+
+    sp = &utat;
+    /*
+    for (i=0; i<argc; i++)
+      printf("arg[%d]=%s ", i, argv[i]);
+    */
+    //showarg(argc, argv);
+    
+
+
+    if (argc==1){  /* for uls without any parameter ==> cwd */
+        strcpy(file, "./");
+    }
+    else
+      strcpy(file, argv[1]);
+
+    if (stat(file, sp) < 0){
+        printf("cannot stat %s\n",argv[1]);
+        exit(2);
+    }
+
+    if ((sp->st_mode & 0100000)==0100000){
+        ls_file(sp, file, file);
+    }
+    else{
+        if ((sp->st_mode & 0040000)==0040000)
+	        ls_dir(sp, file);
+    }
+
+    exit(0);
+}
+

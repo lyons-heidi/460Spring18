@@ -1,32 +1,32 @@
 #define NULL 0
 
-int strlen(const char *s)
-{
-  int i = 0;
-  while(*s){
-    i++; s++;
-  }
-  return i;
-}
+// int strlen(const char *s)
+// {
+//   int i = 0;
+//   while(*s){
+//     i++; s++;
+//   }
+//   return i;
+// }
 
-int strcmp(char *s1, char *s2)
-{
-  while((*s1 && *s2) && (*s1==*s2)){
-      s1++; s2++;
-  }
-  if ((*s1==0) && (*s2==0))
-    return 0;
-  return(*s1 - *s2);
+// int strcmp(char *s1, char *s2)
+// {
+//   while((*s1 && *s2) && (*s1==*s2)){
+//       s1++; s2++;
+//   }
+//   if ((*s1==0) && (*s2==0))
+//     return 0;
+//   return(*s1 - *s2);
 
-}
+// }
 
-int strcpy(char *dest, char *src)
-{
-  while(*src){
-    *dest++ = *src++;
-  }
-  *dest = 0;
-}
+// int strcpy(char *dest, char *src)
+// {
+//   while(*src){
+//     *dest++ = *src++;
+//   }
+//   *dest = 0;
+// }
 
 char *my_strcpy(char *destination, const char *source) {
 	int i = 0;
@@ -80,15 +80,15 @@ int strcspn(const char *str1, const char *str2){
 }
 
 
-int atoi(char *str){
-    int res = 0;
-    int i;
-    // go through char and update resutl:
-    for (i = 0; str[i] != '\0'; ++i){
-        res = res*10 + str[i] - '0';
-    }
-    return res;
-}
+// int atoi(char *str){
+//     int res = 0;
+//     int i;
+//     // go through char and update resutl:
+//     for (i = 0; str[i] != '\0'; ++i){
+//         res = res*10 + str[i] - '0';
+//     }
+//     return res;
+// }
 
 
 
