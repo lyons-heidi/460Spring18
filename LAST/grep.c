@@ -6,17 +6,18 @@ char *getsubstr(char *substr, char *str);
 void * my_memset(void *s, int c, int n);
 
 
-
 int main(int argc, char *argv[ ])
 {
     int fd; // file descriptor!
-    int n, line;
+    int i, n, line;
+    int EndOF = 1;
     int lenline = 80; // handle at most 80 lines
     char pattern[64], buf[128];
 
     int pid = getpid();
     printf("Heidi-sh: proc %d running GREP program\n", pid);
 
+    // debugging
     printf("argc = %d\n", argc);
     for (i=0; i<argc; i++){
         printf("argv[%d] = %s\n", i, argv[i]);
@@ -35,8 +36,8 @@ int main(int argc, char *argv[ ])
         strcpy(pattern, argv[1]);
         fd = dup(0);
 
-        // go through the entire dir's 'file' until EOF
-        while( E_OF == 1 ) {
+        // go through the entire dir's 'file' until EndOF
+        while( EndOF == 1 ) {
             // clear bufer
             my_memset(buf, 0, 128);
 
@@ -48,7 +49,7 @@ int main(int argc, char *argv[ ])
                 
                 // end of file reached:
                 if(n == 0) {
-                    E_OF = 0;
+                    EndOF = 0;
                 }
 
                 // end of line reached
@@ -62,7 +63,7 @@ int main(int argc, char *argv[ ])
             printf("%s", buf); //testing buffer.
             
             // pattern found! Print to console
-            if(getsubstr(pat, buf) != 0) {
+            if(getsubstr(pattern, buf) != 0) {
                 printf("%s", buf);
             }
         }
@@ -81,8 +82,8 @@ int main(int argc, char *argv[ ])
             exit(1);
         }
 
-        // go through the entire file until EOF
-        while( E_OF == 1 ) {
+        // go through the entire file until EndOF
+        while( EndOF == 1 ) {
             // clear bufer
             my_memset(buf, 0, 128);
 
@@ -94,7 +95,7 @@ int main(int argc, char *argv[ ])
                 
                 // end of file reached:
                 if(n == 0) {
-                    E_OF = 0;
+                    EndOF = 0;
                 }
 
                 // end of line reached
@@ -105,10 +106,10 @@ int main(int argc, char *argv[ ])
                 line++;
             }
 
-            printf("%s", buf); //testing buffer.
+            //printf("%s", buf); //testing buffer.
             
             // pattern found! Print to console
-            if(getsubstr(pat, buf) != 0) {
+            if ( getsubstr(pattern, buf) != 0 ) {
                 printf("%s", buf);
             }
         }
@@ -118,29 +119,30 @@ int main(int argc, char *argv[ ])
 }
 
 
-/* Find the substring in a given str, if it exists */
-char *getsubstr(char *substr, char *str){
+/* Find the substring in a given str, if it exists
+   RETURNS substring, or 0 if no match found */
+char *getsubstr(char *sub, char *src){
   char *a , *b;
 
-  b = substr;
+  b = sub;
   if(*b == 0){
-      return str;
+      return src;
   }
-  for( ; *str != 0; str++){
-      if(*str != *b){
+  for( ; *src != 0; src++){
+      if(*src != *b){
           continue;
       }
-      a = str;
+      a = src;
       while(1){
           if (*b == 0){
-              return str;
+              return src;
           }
           if (*a++ != *b++){
               break;
           }
 
       }
-      b = substr;
+      b = sub;
   }
   return 0;
 }
