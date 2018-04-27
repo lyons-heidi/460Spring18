@@ -113,8 +113,6 @@ void ls_file(sp,name,path) struct stat *sp; char *name, *path;
     //align(sp->st_size);
     printf("%d ", sp->st_size);
 
-    pdate(&sp->st_date); ptime(&sp->st_time);
-
     printf("%s", name);
 
     if ((mode & 0120000)== 0120000){
@@ -168,17 +166,11 @@ void ls_dir(sp, path) struct stat *sp; char *path;
 
 int main(int argc, char *argv[ ])
 {
-    printf("========================================\n");
-    printf("= --- -- Heidi's LS in action - -- --- =\n");
-    printf("========================================\n");
+    print2f("========================================\n\r");
+    print2f("= --- -- Heidi's LS in action - -- --- =\n\r");
+    print2f("========================================\n\r");
 
     sp = &utat;
-    /*
-    for (i=0; i<argc; i++)
-      printf("arg[%d]=%s ", i, argv[i]);
-    */
-    //showarg(argc, argv);
-    
 
 
     if (argc==1){  /* for uls without any parameter ==> cwd */

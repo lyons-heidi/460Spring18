@@ -3,31 +3,31 @@
 #include "ucode.c"
 
 void * my_memset(void *s, int c, int n);
-
+int io = 0;
 
 int main (int argc, char *argv[]) {
-    prints("********** Heidi's Cat MEOW ************ \n");
-    
+
     int n = 0;
     int fd; 
     int stdin = 0, stdout = 1; // read/write to stdin/out
-    char buf[1024], cmdLine[64], user_ch;
+    char buf[512], cmdLine[64], user_ch;
     
+    //prints("********** Heidi's Cat MEOW ************ \n");
+
     // make sure user enters input
     if(argc <= 0){
-        prints("Error, no input found! \n");
+        printf("Error, no input found! \n");
         exit(1);
     }
 
     // only one argument given to main, get input from stdin
     else if (argc == 1) {
         fd = 0;
-        //prints("Error! User must specify a file!\n");
         while(read(0, &user_ch, 1)){
             // If newline detected, write to screen
             if(user_ch == '\n' || user_ch == '\r'){
-                write(1, "\n", 1);
-                write(1, "\r", 1);
+                write(1, '\n', 1);
+                //write(1, "\r", 1);
             }
 
             // write char to screen
@@ -40,10 +40,11 @@ int main (int argc, char *argv[]) {
     else{
         // open file, read and print the buffer
         fd = open(argv[1], O_RDONLY);
-        my_memset(buf, 0, 1024);
-        while((n = read( fd, buf, 1024))){
+        my_memset(buf, 0, 512);
+
+        while((n = read( fd, buf, 512))){
             prints(buf);
-            my_memset(buf, 0, 1024);
+            my_memset(buf, 0, 512);
         }
         close(fd);
     }
