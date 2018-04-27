@@ -31,16 +31,9 @@ typedef struct stat {
   ushort st_rdev;
   long   st_size;		// file size 
   long   st_atime;		// time of last access 
-  ******************** KCW : order in ionde is ctime, mtime ***************
-  //long   st_mtime;		// time of last data modification
-  //long   st_ctime;		// time of last file status change
-  ***************** revirse order to make storing time in MTX easier *********
-  long   st_ctime;		// time of last data modification
-  long   st_mtime;		// time of last file status change
-  ****** KCW: order of ctime and mtime are reversed in inode 
 } STAT;
 **************************************************************************/
-//int strcat(), strncpy();
+
 
 STAT utat, *sp;
 int fd, n;
@@ -51,26 +44,13 @@ char buf[1024];
 DIR *dp;
 char *cp;
 
-void pdate(t) u8 t[4];
-{
-   printf("%c%c%c%c-%c%c-%c%c  ", 
-          (t[0]>>4)+'0', (t[0]&0x0F)+'0',
-          (t[1]>>4)+'0', (t[1]&0x0F)+'0', 
-          (t[2]>>4)+'0', (t[2]&0x0F)+'0',
-          (t[3]>>4)+'0', (t[3]&0x0F)+'0');
-}
 
-void ptime(t) u8 t[4];
-{
-   printf("%c%c:%c%c:%c%c  ", 
-   (t[0]>>4)+'0', (t[0]&0x0F)+'0',
-   (t[1]>>4)+'0', (t[1]&0x0F)+'0', 
-   (t[2]>>4)+'0', (t[2]&0x0F)+'0');
-}
-
+/* List file permissions */
 void ls_file(sp,name,path) struct stat *sp; char *name, *path;
 {
-    int mode, mask, k, len;
+    int mode, k, len;
+    int mask = 000400;
+
     char fullname[32], linkname[60];
 
     mode = sp->st_mode;
@@ -80,11 +60,10 @@ void ls_file(sp,name,path) struct stat *sp; char *name, *path;
 
     if ((mode & 0120000) == 0120000)
         mputc('s');
+
     else if ((mode & 0100000) == 0100000)
          mputc('-');
-
-
-    mask = 000400;
+    
     for (k=0; k<3; k++){
         if (mode & mask)
             mputc('r');
@@ -110,7 +89,7 @@ void ls_file(sp,name,path) struct stat *sp; char *name, *path;
 
 
     printf(" %d  %d", sp->st_uid, sp->st_gid);
-    //align(sp->st_size);
+
     printf("%d ", sp->st_size);
 
     printf("%s", name);
@@ -126,6 +105,7 @@ void ls_file(sp,name,path) struct stat *sp; char *name, *path;
 
 }
 
+/* List a given directory, and all of its files */
 void ls_dir(sp, path) struct stat *sp; char *path;
 {
     STAT dstat, *dsp;
@@ -133,8 +113,6 @@ void ls_dir(sp, path) struct stat *sp; char *path;
     char temp[32];
 
     size = sp->st_size;
-
-    // printf("ls_dir %s\n", path); //getc();
 
     fd = open(file, O_RDONLY); /* open dir file for READ */
 
@@ -164,10 +142,9 @@ void ls_dir(sp, path) struct stat *sp; char *path;
     close(fd);
 }         
 
-int main(int argc, char *argv[ ])
-{
+int main(int argc, char *argv[ ]) {
     print2f("========================================\n\r");
-    print2f("= --- -- Heidi's LS in action - -- --- =\n\r");
+    print2f("= --- --      Heidi's LS      - -- --- =\n\r");
     print2f("========================================\n\r");
 
     sp = &utat;
@@ -176,6 +153,7 @@ int main(int argc, char *argv[ ])
     if (argc==1){  /* for uls without any parameter ==> cwd */
         strcpy(file, "./");
     }
+
     else
       strcpy(file, argv[1]);
 
@@ -187,6 +165,7 @@ int main(int argc, char *argv[ ])
     if ((sp->st_mode & 0100000)==0100000){
         ls_file(sp, file, file);
     }
+
     else{
         if ((sp->st_mode & 0040000)==0040000)
 	        ls_dir(sp, file);
